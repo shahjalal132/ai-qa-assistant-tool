@@ -17,6 +17,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Job rate limits (Gemini)
+    |--------------------------------------------------------------------------
+    |
+    | The named limiter "gemini-api" is registered in AppServiceProvider and used
+    | by App\Jobs\ProcessQA. Adjust frequency via QA_GEMINI_RATE_PER_MINUTE in .env.
+    |
+    */
+
+    /*
+    |--------------------------------------------------------------------------
     | Queue Connections
     |--------------------------------------------------------------------------
     |

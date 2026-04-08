@@ -22,6 +22,21 @@
         <x-nav-link variant="sidebar" :href="route('dashboard')" :active="request()->routeIs('dashboard')" @click="sidebarOpen = false">
             {{ __('Dashboard') }}
         </x-nav-link>
+        <x-nav-link variant="sidebar" :href="route('csv-upload-batches.index')" :active="request()->routeIs('csv-upload-batches.*')" @click="sidebarOpen = false">
+            {{ __('CSV uploads') }}
+        </x-nav-link>
+        <x-nav-link variant="sidebar" :href="route('prompts.index')" :active="request()->routeIs('prompts.*')" @click="sidebarOpen = false">
+            {{ __('Prompts') }}
+        </x-nav-link>
+        <x-nav-link variant="sidebar" :href="route('qa-runs.index')" :active="request()->routeIs('qa-runs.*')" @click="sidebarOpen = false">
+            {{ __('QA runs') }}
+        </x-nav-link>
+        <x-nav-link variant="sidebar" :href="route('results.index')" :active="request()->routeIs('results.*')" @click="sidebarOpen = false">
+            {{ __('Results') }}
+        </x-nav-link>
+        <x-nav-link variant="sidebar" :href="route('settings.index')" :active="request()->routeIs('settings.*')" @click="sidebarOpen = false">
+            {{ __('Settings') }}
+        </x-nav-link>
     </nav>
 
     <div class="shrink-0 border-t border-white/10 p-3">
