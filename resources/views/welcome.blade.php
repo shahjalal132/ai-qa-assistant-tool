@@ -24,14 +24,10 @@
                 background-clip: text;
             }
             .hero-bg {
-                background-image: url('https://cdn.prod.website-files.com/65ba9a1f0a4a7ab901ad8d3e/6696608407e73f8c26e6e422_KI%20Assistent.webp');
+                background-image: url('https://images.pexels.com/photos/20870794/pexels-photo-20870794.jpeg');
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
-            }
-            .nav-btn {
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
             }
         </style>
     </head>
@@ -44,60 +40,29 @@
             {{-- Dark Overlay --}}
             <div class="absolute inset-0 bg-black/65 z-0"></div>
 
-            {{-- Navigation --}}
-            @if (Route::has('login'))
-                <header class="relative z-10 w-full px-6 py-5 flex justify-end">
-                    <nav class="flex items-center gap-3">
-                        @auth
-                            <a
-                                href="{{ url('/dashboard') }}"
-                                class="nav-btn inline-block px-5 py-2 text-sm font-medium text-white border border-white/30 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200"
-                            >
-                                Dashboard
-                            </a>
-                        @else
-                            <a
-                                href="{{ route('login') }}"
-                                class="nav-btn inline-block px-5 py-2 text-sm font-medium text-white/85 border border-white/20 rounded-lg bg-white/5 hover:bg-white/15 hover:text-white transition-all duration-200"
-                            >
-                                Log in
-                            </a>
-                        @endauth
-                    </nav>
-                </header>
-            @endif
-
             {{-- Hero Content --}}
             <div class="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 py-16">
 
                 {{-- Main Heading --}}
                 <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight tracking-tight mb-6 max-w-4xl">
-                    <span class="gradient-text">AI QA Assistant</span>
-                    <br>
-                    <span class="text-white">Tool.</span>
+                    <span class="gradient-text">AI QA Assistant Tool.</span>
                 </h1>
-
-                {{-- Subheading --}}
-                <p class="text-lg sm:text-xl text-white/60 max-w-xl mb-10 leading-relaxed">
-                    Automate your quality assurance workflow with intelligent testing, bug detection, and real-time insights.
-                </p>
 
                 {{-- CTA Buttons --}}
                 <div class="flex flex-col sm:flex-row items-center gap-4">
                     @auth
-                        <a
-                            href="{{ url('/dashboard') }}"
-                            class="px-8 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-blue-500 hover:from-violet-500 hover:to-blue-400 transition-all duration-200 shadow-lg shadow-violet-900/40"
-                        >
+                        <x-rainbow-button :href="url('/dashboard')">
                             Go to Dashboard →
-                        </a>
+                        </x-rainbow-button>
                     @else
-                        <a
-                            href="{{ route('login') }}"
-                            class="nav-btn px-8 py-3.5 rounded-xl text-sm font-semibold text-white/80 border border-white/25 bg-white/5 hover:bg-white/10 hover:text-white transition-all duration-200"
-                        >
+                        <x-rainbow-button :href="route('login')">
                             Sign In
-                        </a>
+                        </x-rainbow-button>
+                        @if (Route::has('register'))
+                            <x-rainbow-button :href="route('register')">
+                                Register
+                            </x-rainbow-button>
+                        @endif
                     @endauth
                 </div>
 

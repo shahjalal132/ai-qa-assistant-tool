@@ -1,5 +1,5 @@
 <aside
-    class="fixed inset-y-0 start-0 z-40 flex min-h-screen w-64 shrink-0 flex-col bg-[#34495E] text-white shadow-lg transition-transform duration-200 ease-out md:static md:translate-x-0"
+    class="fixed inset-y-0 start-0 z-40 flex min-h-screen w-64 shrink-0 flex-col bg-[#2C3E50] text-white shadow-lg transition-transform duration-200 ease-out md:static md:translate-x-0"
     :class="sidebarOpen ? 'max-md:translate-x-0' : 'max-md:-translate-x-full'"
 >
     <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-white/10 px-4">
