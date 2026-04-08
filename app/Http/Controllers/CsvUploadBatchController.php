@@ -64,6 +64,7 @@ class CsvUploadBatchController extends Controller
         ]);
 
         $count = 0;
+        $buffer = [];
         while (($row = fgetcsv($handle)) !== false) {
             if ($this->rowIsEmpty($row)) {
                 continue;
@@ -86,15 +87,22 @@ class CsvUploadBatchController extends Controller
                 $metadata[$key] = $row[$i];
             }
 
-            ReportUrl::query()->create([
+            $buffer[] = [
                 'csv_upload_batch_id' => $batch->id,
                 'english_url' => $english,
                 'welsh_url' => $welsh,
                 'metadata' => $metadata === [] ? null : $metadata,
                 'status' => 'pending',
-            ]);
+            ];
             $count++;
+
+            if (count($buffer) >= 500) {
+                ReportUrl::insertImportChunks($buffer);
+                $buffer = [];
+            }
         }
+
+        ReportUrl::insertImportChunks($buffer);
 
         fclose($handle);
 

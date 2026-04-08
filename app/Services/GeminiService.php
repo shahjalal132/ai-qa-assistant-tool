@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\Prompt;
 use App\Models\Setting;
+use DOMXPath;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class GeminiService
@@ -20,9 +22,74 @@ class GeminiService
     {
         $html = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $html) ?? '';
         $html = preg_replace('#<style\b[^>]*>.*?</style>#is', '', $html) ?? '';
-        $html = preg_replace('#<nav\b[^>]*>.*?</nav>#is', '', $html) ?? '';
 
-        return trim(strip_tags($html));
+        foreach (['nav', 'header', 'footer', 'aside', 'form'] as $tag) {
+            $html = preg_replace('#<'.$tag.'\b[^>]*>.*?</'.$tag.'>#is', '', $html) ?? '';
+        }
+
+        $text = $this->extractPreferredPlainText($html);
+        if ($text === '') {
+            $text = strip_tags($html);
+        }
+
+        $text = $this->normalizeWhitespace($text);
+        $max = (int) config('qa.max_stripped_content_length', 65535);
+        if ($max > 0 && strlen($text) > $max) {
+            $text = Str::limit($text, $max, '…', preserveWords: false);
+        }
+
+        return $text;
+    }
+
+    private function extractPreferredPlainText(string $html): string
+    {
+        if ($html === '') {
+            return '';
+        }
+
+        $useErrors = libxml_use_internal_errors(true);
+        try {
+            $dom = new \DOMDocument;
+            $loaded = @$dom->loadHTML('<?xml encoding="UTF-8">'.$html, LIBXML_NOWARNING | LIBXML_NOERROR);
+            if (! $loaded) {
+                return '';
+            }
+
+            $xpath = new DOMXPath($dom);
+            foreach ([
+                '//main',
+                '//*[translate(@role, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")="main"]',
+                '//article',
+            ] as $expression) {
+                $nodes = $xpath->query($expression);
+                if ($nodes === false) {
+                    continue;
+                }
+                foreach ($nodes as $node) {
+                    $chunk = $this->normalizeWhitespace($node->textContent ?? '');
+                    if ($chunk !== '') {
+                        return $chunk;
+                    }
+                }
+            }
+
+            $body = $dom->getElementsByTagName('body')->item(0);
+            if ($body) {
+                return $this->normalizeWhitespace($body->textContent ?? '');
+            }
+
+            return '';
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($useErrors);
+        }
+    }
+
+    private function normalizeWhitespace(string $text): string
+    {
+        $text = preg_replace('/\s+/u', ' ', $text) ?? '';
+
+        return trim($text);
     }
 
     /**

@@ -26,10 +26,10 @@ class ProcessQA implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return (string) $this->qaRun->id;
+        return (string) $this->qaRunId;
     }
 
-    public function __construct(public QaRun $qaRun) {}
+    public function __construct(public int $qaRunId) {}
 
     /**
      * @return array<int, object>
@@ -41,7 +41,7 @@ class ProcessQA implements ShouldBeUnique, ShouldQueue
 
     public function handle(GeminiService $gemini): void
     {
-        $run = QaRun::query()->with(['prompt', 'reportUrl'])->findOrFail($this->qaRun->id);
+        $run = QaRun::query()->with(['prompt', 'reportUrl'])->findOrFail($this->qaRunId);
 
         if (! $run->is_active) {
             return;
@@ -71,12 +71,24 @@ class ProcessQA implements ShouldBeUnique, ShouldQueue
             $enHtml = $this->fetchBody($urlRow->english_url);
             $cyHtml = $this->fetchBody($urlRow->welsh_url);
 
+            Log::info('enHtml', [$enHtml]);
+            Log::info('cyHtml', [$cyHtml]);
+
             if ($enHtml === '' || $cyHtml === '') {
                 throw new \RuntimeException('Empty HTML from one or both URLs (blocked, timeout, or non-200).');
             }
 
             $enText = $gemini->stripHtmlForTokens($enHtml);
             $cyText = $gemini->stripHtmlForTokens($cyHtml);
+
+            Log::info('enText', [$enText]);
+            Log::info('cyText', [$cyText]);
+
+            Log::info('cleaned enText', [$enText]);
+            Log::info('cleaned cyText', [$cyText]);
+
+            Log::info('cleaned enText', [$enText]);
+            Log::info('cleaned cyText', [$cyText]);
 
             $schema = $prompt->response_schema ?? [];
             if ($schema === []) {
@@ -125,7 +137,7 @@ class ProcessQA implements ShouldBeUnique, ShouldQueue
 
     private function fetchBody(string $url): string
     {
-        $response = Http::timeout(30)
+        $response = Http::timeout(60)
             ->withHeaders(['User-Agent' => 'AI-QA-Tool/1.0'])
             ->get($url);
 

@@ -24,4 +24,14 @@ return [
     */
     'gemini_rate_per_minute' => (int) env('QA_GEMINI_RATE_PER_MINUTE', 15),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Max plain-text length after HTML stripping (Gemini input)
+    |--------------------------------------------------------------------------
+    |
+    | Prevents pathological pages from blowing token usage. Set to 0 to disable.
+    |
+    */
+    'max_stripped_content_length' => (int) env('QA_MAX_STRIPPED_CONTENT_LENGTH', 65535),
+
 ];

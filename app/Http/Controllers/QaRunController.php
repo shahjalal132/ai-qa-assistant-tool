@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\FanOutProcessQaJobs;
 use App\Jobs\ProcessQA;
 use App\Models\CsvUploadBatch;
 use App\Models\Prompt;
 use App\Models\QaRun;
 use App\Models\ReportUrl;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -46,7 +48,7 @@ class QaRunController extends Controller
         return view('qa-runs.create', compact('batches', 'prompts'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'csv_upload_batch_id' => ['required', 'exists:csv_upload_batches,id'],
@@ -60,43 +62,57 @@ class QaRunController extends Controller
         $prompt = Prompt::query()->findOrFail($data['prompt_id']);
         abort_unless($prompt->is_active, 422, __('Prompt is inactive.'));
 
-        $urls = ReportUrl::query()
+        $reportUrlIds = ReportUrl::query()
             ->where('csv_upload_batch_id', $batch->id)
-            ->get();
+            ->pluck('id');
 
-        $created = 0;
-        foreach ($urls as $url) {
-            $run = QaRun::query()->firstOrCreate(
-                [
-                    'prompt_id' => $prompt->id,
-                    'report_url_id' => $url->id,
-                ],
-                [
-                    'status' => 'pending',
-                    'is_active' => true,
-                    'error_message' => null,
-                ]
-            );
-            if ($run->wasRecentlyCreated) {
-                $created++;
+        $existingReportUrlIds = QaRun::query()
+            ->where('prompt_id', $prompt->id)
+            ->whereIn('report_url_id', $reportUrlIds)
+            ->pluck('report_url_id');
+
+        $missingIds = $reportUrlIds->diff($existingReportUrlIds)->values();
+        $now = now();
+        $insertRows = $missingIds->map(fn (int $reportUrlId) => [
+            'prompt_id' => $prompt->id,
+            'report_url_id' => $reportUrlId,
+            'status' => 'pending',
+            'error_message' => null,
+            'is_active' => true,
+            'started_at' => null,
+            'completed_at' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ])->all();
+
+        foreach (array_chunk($insertRows, 500) as $chunk) {
+            if ($chunk !== []) {
+                QaRun::query()->insert($chunk);
             }
         }
 
+        $created = $missingIds->count();
+
         if ($request->boolean('dispatch')) {
-            QaRun::query()
-                ->where('prompt_id', $prompt->id)
-                ->whereIn('report_url_id', $urls->pluck('id'))
-                ->where('is_active', true)
-                ->where('status', 'pending')
-                ->get()
-                ->each(fn (QaRun $r) => ProcessQA::dispatch($r));
+            FanOutProcessQaJobs::dispatch($prompt->id, $batch->id, (int) auth()->id())
+                ->afterResponse();
         }
 
-        return redirect()->route('qa-runs.index')
-            ->with('status', __('Linked runs for this batch and prompt. New rows created: :n. Dispatched pending jobs: :d.', [
-                'n' => $created,
-                'd' => $request->boolean('dispatch') ? __('yes') : __('no'),
-            ]));
+        $message = __('Linked runs for this batch and prompt. New rows created: :n. Dispatched pending jobs: :d.', [
+            'n' => $created,
+            'd' => $request->boolean('dispatch') ? __('yes') : __('no'),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => $message,
+                'redirect' => route('qa-runs.index'),
+                'created' => $created,
+                'dispatched' => $request->boolean('dispatch'),
+            ]);
+        }
+
+        return redirect()->route('qa-runs.index')->with('status', $message);
     }
 
     public function show(QaRun $qaRun): View
@@ -133,7 +149,7 @@ class QaRunController extends Controller
             'started_at' => null,
             'completed_at' => null,
         ]);
-        ProcessQA::dispatch($qaRun);
+        ProcessQA::dispatch($qaRun->id);
 
         return back()->with('status', __('Run re-queued.'));
     }
