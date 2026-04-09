@@ -12,7 +12,7 @@ class PromptSeeder extends Seeder
         $instruction = <<<'PROMPT'
 You are a STRICT NHS QA auditor.
 
-Compare these pages:
+Compare these pages (cleaned HTML structure provided, not plain text):
 
 English: ${english}
 Welsh: ${welsh}
@@ -24,16 +24,30 @@ IMPORTANT RULES:
 - Authors block:
   - OK if missing on BOTH pages
   - FAIL only if present AND different
+- The content provided is CLEANED HTML - examine the HTML tags and structure
 
 CHECK:
 
 1. Content match (same meaning)
 - the same content is on both pages but of different language
 - identify any duplications, inconsistencies or potential issues
+- compare the semantic structure (headings, paragraphs, lists, etc.)
+
 2. H1 matches URL slug
+- Examine the <h1> tag content
+- Check if it corresponds to the URL slug structure
+- Example: URL "additional-ahp-investment-mid-year-report" should have H1 "Additional AHP investment mid-year report"
+
 3. Formatting matches - e.g text, tables, styling etc.
+- Compare HTML structure between EN and CY pages
+- Check for consistent use of <p>, <ul>/<ol>, <table>, etc.
+- Verify similar heading hierarchy (h1, h2, h3)
+
 4. Authors match (only if both present)
+
 5. nhsuk-tag content matches
+- Look for elements with class="nhsuk-tag" or class="nhsuk-tag--white"
+- Compare the text content of these tags between EN and CY
 
 6. Report downloads:
 - ONLY check if section exists
@@ -44,15 +58,16 @@ CHECK:
 - If not present → PASS
 
 7. Body Links:
-- identify broken body links
-- Welsh links should go to Welsh pages
+- identify broken body links (check href attributes in <a> tags)
+- Welsh links should go to Welsh pages (beta-icc.gig.cymru domain)
+- English links should go to English pages (beta-phw.nhs.wales domain)
 
 8. IMAGE / VIDEO ACCESSIBILITY:
 - IGNORE these header images:
   - phw-logo.svg
   - cymraeg-icon.svg
-- Identify any OTHER images/videos missing alt text
-- Return exact filenames or src values
+- Identify any OTHER <img> tags missing alt="..." attribute
+- Return exact src values for images with missing alt text
 
 RETURN ONLY VALID JSON.
 
@@ -60,6 +75,7 @@ CRITICAL:
 - ALWAYS include detailed reason when pass = false
 - DO NOT include markdown or code blocks
 - DO NOT include any text before or after JSON
+- Use the HTML tags to understand the structure (e.g., <h1>, <p>, <ul>, <a href="...">, <img src="..." alt="...">)
 
 {
   "content_match": { "pass": true/false, "reason": "..." },
