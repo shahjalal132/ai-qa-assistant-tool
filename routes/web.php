@@ -1,8 +1,9 @@
 <?php
 
+use App\Http\Controllers\AiModelController;
 use App\Http\Controllers\CsvUploadBatchController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PromptController;
 use App\Http\Controllers\QaRunController;
 use App\Http\Controllers\ResultController;
@@ -27,6 +28,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('csv-upload-batches', CsvUploadBatchController::class)->except(['edit', 'update']);
 
     Route::resource('prompts', PromptController::class);
+
+    Route::resource('models', AiModelController::class);
 
     Route::post('qa-runs-bulk', [QaRunController::class, 'bulkAction'])->name('qa-runs.bulk-action');
     Route::post('qa-runs/{qa_run}/toggle', [QaRunController::class, 'toggle'])->name('qa-runs.toggle');

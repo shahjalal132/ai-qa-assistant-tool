@@ -28,6 +28,9 @@
         <x-nav-link variant="sidebar" :href="route('prompts.index')" :active="request()->routeIs('prompts.*')" @click="sidebarOpen = false">
             {{ __('Prompts') }}
         </x-nav-link>
+        <x-nav-link variant="sidebar" :href="route('models.index')" :active="request()->routeIs('models.*')" @click="sidebarOpen = false">
+            {{ __('Models') }}
+        </x-nav-link>
         <x-nav-link variant="sidebar" :href="route('qa-runs.index')" :active="request()->routeIs('qa-runs.*')" @click="sidebarOpen = false">
             {{ __('QA runs') }}
         </x-nav-link>

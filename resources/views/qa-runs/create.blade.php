@@ -37,7 +37,20 @@
                             {{ __('Define New Prompt') }}
                         </a>
                     </div>
+                @elseif ($models->isEmpty())
+                    <div class="text-center py-10 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
+                        <p class="text-sm text-gray-500 font-bold mb-4">{{ __('No Gemini models registered.') }}</p>
+                        <a href="{{ route('models.create') }}" class="inline-flex items-center text-[#16a085] hover:text-[#1abc9c] font-bold text-sm transition-colors">
+                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            {{ __('Add a model') }}
+                        </a>
+                    </div>
                 @else
+                    @php
+                        $defaultAiModelId = $models->firstWhere('is_default', true)?->id ?? $models->first()->id;
+                    @endphp
                     <form
                         method="post"
                         action="{{ route('qa-runs.store') }}"
@@ -233,6 +246,23 @@
                                     </div>
                                 </div>
                                 <x-input-error :messages="$errors->get('prompt_id')" class="mt-2 text-xs font-bold" />
+                            </div>
+
+                            <div>
+                                <x-input-label for="ai_model_id" :value="__('Gemini model')" class="text-sm font-bold text-gray-700 mb-2 px-1" />
+                                <div class="relative">
+                                    <select id="ai_model_id" name="ai_model_id" required class="mt-1 block w-full rounded-2xl border-gray-100 focus:border-[#1abc9c] focus:ring-[#1abc9c]/20 shadow-sm transition-all text-sm font-bold h-14 pr-12 appearance-none bg-gray-50/50 focus:bg-white font-mono">
+                                        @foreach ($models as $m)
+                                            <option value="{{ $m->id }}" @selected((string) old('ai_model_id', $defaultAiModelId) === (string) $m->id)>
+                                                {{ $m->name }}@if ($m->is_default) {{ __(' (default)') }} @endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-5 pointer-events-none text-gray-400">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </div>
+                                </div>
+                                <x-input-error :messages="$errors->get('ai_model_id')" class="mt-2 text-xs font-bold" />
                             </div>
 
                             <div class="flex items-start p-6 bg-[#1abc9c]/5 rounded-3xl border border-[#1abc9c]/10 hover:bg-[#1abc9c]/10 transition-colors cursor-pointer group" onclick="document.getElementById('dispatch').click()">

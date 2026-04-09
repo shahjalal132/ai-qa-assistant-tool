@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\AiModel;
 use App\Models\Prompt;
 use App\Models\QaRun;
 use App\Models\ReportUrl;
@@ -17,6 +18,11 @@ class QaRunSeeder extends Seeder
             return;
         }
 
+        $aiModel = AiModel::query()->where('is_default', true)->first() ?? AiModel::query()->first();
+        if (! $aiModel) {
+            return;
+        }
+
         $urls = ReportUrl::query()->orderBy('id')->limit(2)->get();
         if ($urls->isEmpty()) {
             return;
@@ -25,7 +31,7 @@ class QaRunSeeder extends Seeder
         $first = $urls->first();
         QaRun::query()->firstOrCreate(
             ['prompt_id' => $prompt->id, 'report_url_id' => $first->id],
-            ['status' => 'pending', 'is_active' => true]
+            ['ai_model_id' => $aiModel->id, 'status' => 'pending', 'is_active' => true]
         );
 
         if ($urls->count() > 1) {
@@ -33,6 +39,7 @@ class QaRunSeeder extends Seeder
             $runDone = QaRun::query()->updateOrCreate(
                 ['prompt_id' => $prompt->id, 'report_url_id' => $second->id],
                 [
+                    'ai_model_id' => $aiModel->id,
                     'status' => 'completed',
                     'is_active' => true,
                     'error_message' => null,

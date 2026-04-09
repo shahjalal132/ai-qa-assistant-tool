@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\FanOutProcessQaJobs;
 use App\Jobs\ProcessQA;
+use App\Models\AiModel;
 use App\Models\CsvUploadBatch;
 use App\Models\Prompt;
 use App\Models\QaRun;
@@ -45,7 +46,9 @@ class QaRunController extends Controller
 
         $prompts = Prompt::query()->where('is_active', true)->orderBy('title')->get();
 
-        return view('qa-runs.create', compact('batches', 'prompts'));
+        $models = AiModel::query()->orderByDesc('is_default')->orderBy('name')->get();
+
+        return view('qa-runs.create', compact('batches', 'prompts', 'models'));
     }
 
     public function store(Request $request): RedirectResponse|JsonResponse
@@ -53,6 +56,7 @@ class QaRunController extends Controller
         $data = $request->validate([
             'csv_upload_batch_id' => ['required', 'exists:csv_upload_batches,id'],
             'prompt_id' => ['required', 'exists:prompts,id'],
+            'ai_model_id' => ['required', 'exists:ai_models,id'],
             'dispatch' => ['sometimes', 'boolean'],
             'ids' => ['sometimes', 'array'],
             'ids.*' => ['exists:report_urls,id'],
@@ -80,6 +84,7 @@ class QaRunController extends Controller
         $insertRows = $missingIds->map(fn (int $reportUrlId) => [
             'prompt_id' => $prompt->id,
             'report_url_id' => $reportUrlId,
+            'ai_model_id' => (int) $data['ai_model_id'],
             'status' => 'pending',
             'error_message' => null,
             'is_active' => true,
@@ -122,7 +127,7 @@ class QaRunController extends Controller
     public function show(QaRun $qaRun): View
     {
         $this->authorizeRun($qaRun);
-        $qaRun->load(['prompt', 'reportUrl', 'result']);
+        $qaRun->load(['prompt', 'reportUrl', 'result', 'aiModel']);
 
         return view('qa-runs.show', ['run' => $qaRun]);
     }

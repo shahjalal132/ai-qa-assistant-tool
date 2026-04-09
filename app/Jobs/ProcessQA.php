@@ -41,7 +41,7 @@ class ProcessQA implements ShouldBeUnique, ShouldQueue
 
     public function handle(GeminiService $gemini): void
     {
-        $run = QaRun::query()->with(['prompt', 'reportUrl'])->findOrFail($this->qaRunId);
+        $run = QaRun::query()->with(['prompt', 'reportUrl', 'aiModel'])->findOrFail($this->qaRunId);
 
         if (! $run->is_active) {
             return;
@@ -94,10 +94,12 @@ class ProcessQA implements ShouldBeUnique, ShouldQueue
                 ? (bool) config('qa.use_dummy_ai', true)
                 : $dummySetting === '1';
             $hasKey = (bool) (Setting::getValue('gemini_api_key', '') ?? '');
+            $modelId = $run->aiModel?->name;
+
             if ($useDummy || ! $hasKey) {
                 $data = $gemini->dummyAnalyze($prompt, $enText, $cyText, $schema);
             } else {
-                $data = $gemini->analyze($prompt, $enText, $cyText, $schema);
+                $data = $gemini->analyze($prompt, $enText, $cyText, $schema, $modelId);
             }
 
             DB::transaction(function () use ($run, $data): void {

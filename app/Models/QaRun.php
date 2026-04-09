@@ -11,6 +11,7 @@ class QaRun extends Model
     protected $fillable = [
         'prompt_id',
         'report_url_id',
+        'ai_model_id',
         'status',
         'error_message',
         'is_active',
@@ -30,6 +31,11 @@ class QaRun extends Model
     public function prompt(): BelongsTo
     {
         return $this->belongsTo(Prompt::class);
+    }
+
+    public function aiModel(): BelongsTo
+    {
+        return $this->belongsTo(AiModel::class, 'ai_model_id');
     }
 
     public function reportUrl(): BelongsTo

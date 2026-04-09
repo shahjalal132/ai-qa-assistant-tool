@@ -208,18 +208,21 @@ class GeminiService
             // Always keep href on links
             if ($name === 'href' && $tag === 'a' && $value !== '') {
                 $target->setAttribute('href', $value);
+
                 continue;
             }
 
             // Always keep src and alt on images
             if ($tag === 'img' && in_array($name, ['src', 'alt'], true)) {
                 $target->setAttribute($name, $value);
+
                 continue;
             }
 
             // Keep id only on h1-h6 (for heading identification)
             if ($name === 'id' && in_array($tag, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'], true)) {
                 $target->setAttribute('id', $value);
+
                 continue;
             }
 
@@ -232,6 +235,7 @@ class GeminiService
                 if (! empty($nhsukClasses)) {
                     $target->setAttribute('class', implode(' ', $nhsukClasses));
                 }
+
                 continue;
             }
         }
@@ -255,6 +259,7 @@ class GeminiService
                 if (! in_array($tag, $allowedTags, true)) {
                     // Still recurse into children to extract any text or nested allowed tags
                     $this->copyChildrenPreservingStructure($child, $target, $doc, $allowedTags);
+
                     continue;
                 }
 
@@ -390,7 +395,7 @@ class GeminiService
      * @param  array<string, mixed>  $schema  Gemini response_schema (JSON Schema object)
      * @return array<string, mixed> Decoded JSON object from the model response
      */
-    public function analyze(Prompt $prompt, string $enContent, string $cyContent, array $schema): array
+    public function analyze(Prompt $prompt, string $enContent, string $cyContent, array $schema, ?string $modelId = null): array
     {
         $apiKey = Setting::getValue('gemini_api_key', '') ?? '';
         if ($apiKey === '') {
@@ -412,9 +417,10 @@ class GeminiService
             ],
         ];
 
+        $model = $modelId ?? $this->model;
         $url = sprintf(
             'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent',
-            $this->model
+            rawurlencode($model)
         );
 
         $response = Http::timeout(90)

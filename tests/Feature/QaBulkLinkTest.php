@@ -2,6 +2,7 @@
 
 use App\Jobs\FanOutProcessQaJobs;
 use App\Jobs\ProcessQA;
+use App\Models\AiModel;
 use App\Models\CsvUploadBatch;
 use App\Models\Prompt;
 use App\Models\QaRun;
@@ -35,10 +36,13 @@ test('qa run store bulk inserts rows and queues fan-out when dispatch is true', 
         'is_active' => true,
     ]);
 
+    $aiModel = AiModel::factory()->create(['name' => 'gemini-bulk-a']);
+
     $this->actingAs($user)
         ->postJson(route('qa-runs.store'), [
             'csv_upload_batch_id' => $batch->id,
             'prompt_id' => $prompt->id,
+            'ai_model_id' => $aiModel->id,
             'dispatch' => '1',
         ])
         ->assertOk()
@@ -46,6 +50,7 @@ test('qa run store bulk inserts rows and queues fan-out when dispatch is true', 
         ->assertJsonStructure(['redirect', 'message', 'dispatched']);
 
     expect(QaRun::query()->count())->toBe(3);
+    expect(QaRun::query()->where('ai_model_id', $aiModel->id)->count())->toBe(3);
 
     Queue::assertPushed(FanOutProcessQaJobs::class, function (FanOutProcessQaJobs $job) use ($batch, $prompt, $user) {
         return $job->promptId === $prompt->id
@@ -79,10 +84,13 @@ test('qa run store does not queue fan-out when dispatch is false', function () {
         'is_active' => true,
     ]);
 
+    $aiModel = AiModel::factory()->create(['name' => 'gemini-bulk-b']);
+
     $this->actingAs($user)
         ->postJson(route('qa-runs.store'), [
             'csv_upload_batch_id' => $batch->id,
             'prompt_id' => $prompt->id,
+            'ai_model_id' => $aiModel->id,
             'dispatch' => '0',
         ])
         ->assertOk()
@@ -116,9 +124,12 @@ test('qa run store creates zero new rows when runs already exist', function () {
         'is_active' => true,
     ]);
 
+    $aiModel = AiModel::factory()->create(['name' => 'gemini-bulk-c']);
+
     QaRun::query()->create([
         'prompt_id' => $prompt->id,
         'report_url_id' => $url->id,
+        'ai_model_id' => $aiModel->id,
         'status' => 'pending',
         'is_active' => true,
     ]);
@@ -127,6 +138,7 @@ test('qa run store creates zero new rows when runs already exist', function () {
         ->postJson(route('qa-runs.store'), [
             'csv_upload_batch_id' => $batch->id,
             'prompt_id' => $prompt->id,
+            'ai_model_id' => $aiModel->id,
             'dispatch' => '0',
         ])
         ->assertOk()
