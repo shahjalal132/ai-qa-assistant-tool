@@ -25,7 +25,7 @@
                 background-clip: text;
             }
             .hero-bg {
-                background-image: url('{{ asset('assets/images/ai-chat.jpeg') }}');
+                background-image: url('{{ asset('assets/images/ai-qa-assistant.webp') }}');
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
