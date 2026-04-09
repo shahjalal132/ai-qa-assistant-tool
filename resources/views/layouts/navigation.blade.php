@@ -1,8 +1,8 @@
 <aside
-    class="fixed inset-y-0 start-0 z-40 flex min-h-screen w-64 shrink-0 flex-col bg-[#2C3E50] text-white shadow-lg transition-transform duration-200 ease-out md:static md:translate-x-0"
+    class="fixed inset-y-0 start-0 z-40 flex min-h-screen w-64 shrink-0 flex-col bg-[#16a085] text-white shadow-lg transition-transform duration-200 ease-out md:static md:translate-x-0"
     :class="sidebarOpen ? 'max-md:translate-x-0' : 'max-md:-translate-x-full'"
 >
-    <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-white/10 px-4">
+    <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-white/15 px-4">
         <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center" @click="sidebarOpen = false">
             <x-application-logo class="block h-9 w-auto fill-current text-white" />
         </a>
@@ -39,7 +39,7 @@
         </x-nav-link>
     </nav>
 
-    <div class="shrink-0 border-t border-white/10 p-3">
+    <div class="shrink-0 border-t border-white/15 p-3">
         <x-dropdown align="right" width="48" :dropup="true">
             <x-slot name="trigger">
                 <button type="button" class="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-start text-sm font-medium text-white/90 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20">

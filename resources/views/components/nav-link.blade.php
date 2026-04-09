@@ -5,7 +5,7 @@ $isSidebar = ($variant ?? 'default') === 'sidebar';
 
 if ($isSidebar) {
     $classes = ($active ?? false)
-                ? 'flex items-center px-4 py-2.5 text-sm font-medium text-white bg-white/15 border-s-4 border-teal-300 transition duration-150 ease-in-out'
+                ? 'flex items-center px-4 py-2.5 text-sm font-medium text-white bg-white/20 border-s-4 border-[#1abc9c] transition duration-150 ease-in-out'
                 : 'flex items-center px-4 py-2.5 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 border-s-4 border-transparent transition duration-150 ease-in-out';
 } else {
     $classes = ($active ?? false)
