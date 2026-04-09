@@ -112,13 +112,54 @@ class CsvUploadBatchController extends Controller
             ->with('status', __('Imported :count URL pair(s).', ['count' => $count]));
     }
 
-    public function show(CsvUploadBatch $csvUploadBatch): View
+    public function show(Request $request, CsvUploadBatch $csvUploadBatch): View
     {
         $this->authorizeOwner($csvUploadBatch);
 
-        $csvUploadBatch->load(['reportUrls' => fn ($q) => $q->orderBy('id')]);
+        $reportUrls = ReportUrl::query()
+            ->where('csv_upload_batch_id', $csvUploadBatch->id)
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->string('search');
+                $q->where(function ($sq) use ($search) {
+                    $sq->where('english_url', 'like', "%{$search}%")
+                       ->orWhere('welsh_url', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('id')
+            ->paginate(50)
+            ->withQueryString();
 
-        return view('csv-upload-batches.show', ['batch' => $csvUploadBatch]);
+        return view('csv-upload-batches.show', [
+            'batch' => $csvUploadBatch,
+            'reportUrls' => $reportUrls
+        ]);
+    }
+
+    public function destroyUrl(CsvUploadBatch $batch, ReportUrl $url): RedirectResponse
+    {
+        $this->authorizeOwner($batch);
+        abort_unless($url->csv_upload_batch_id === $batch->id, 403);
+
+        $url->delete();
+
+        return back()->with('status', __('URL pair deleted.'));
+    }
+
+    public function bulkActionUrls(Request $request, CsvUploadBatch $batch): RedirectResponse
+    {
+        $this->authorizeOwner($batch);
+        $data = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['exists:report_urls,id'],
+            'action' => ['required', 'string', 'in:delete'],
+        ]);
+
+        ReportUrl::query()
+            ->where('csv_upload_batch_id', $batch->id)
+            ->whereIn('id', $data['ids'])
+            ->delete();
+
+        return back()->with('status', __('Selected URL pairs deleted.'));
     }
 
     public function destroy(CsvUploadBatch $csvUploadBatch): RedirectResponse

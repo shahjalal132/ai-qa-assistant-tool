@@ -63,6 +63,11 @@ class ResultController extends Controller
         sort($extra);
         $allHeaders = array_merge($headers, $extra);
 
+        return $this->streamCsv($results, $allHeaders, $extra);
+    }
+
+    private function streamCsv($results, array $allHeaders, array $extra): StreamedResponse
+    {
         return response()->streamDownload(function () use ($results, $allHeaders, $extra): void {
             $out = fopen('php://output', 'w');
             if ($out === false) {
@@ -96,6 +101,60 @@ class ResultController extends Controller
     public function destroy(Result $result): RedirectResponse
     {
         $this->authorizeResult($result);
+        $this->removeResult($result);
+
+        return redirect()->route('results.index')->with('status', __('Result removed; run reset to pending.'));
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['exists:results,id'],
+        ]);
+
+        $results = Result::whereIn('id', $data['ids'])
+            ->whereHas('qaRun.reportUrl.csvUploadBatch', fn ($q) => $q->where('user_id', auth()->id()))
+            ->get();
+
+        /** @var Result $result */
+        foreach ($results as $result) {
+            $this->removeResult($result);
+        }
+
+        return redirect()->route('results.index')->with('status', __('Selected results removed; runs reset to pending.'));
+    }
+
+    public function bulkExport(Request $request): StreamedResponse
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['exists:results,id'],
+        ]);
+
+        $results = Result::whereIn('id', $data['ids'])
+            ->whereHas('qaRun.reportUrl.csvUploadBatch', fn ($q) => $q->where('user_id', auth()->id()))
+            ->with(['qaRun.prompt', 'qaRun.reportUrl.csvUploadBatch'])
+            ->get();
+
+        $headers = ['result_id', 'qa_run_id', 'english_url', 'welsh_url', 'prompt_title'];
+        $dynamicKeys = [];
+        foreach ($results as $r) {
+            if (is_array($r->data)) {
+                foreach (array_keys($r->data) as $k) {
+                    $dynamicKeys[$k] = true;
+                }
+            }
+        }
+        $extra = array_keys($dynamicKeys);
+        sort($extra);
+        $allHeaders = array_merge($headers, $extra);
+
+        return $this->streamCsv($results, $allHeaders, $extra);
+    }
+
+    private function removeResult(Result $result): void
+    {
         $run = $result->qaRun;
         $result->delete();
         $run?->update([
@@ -103,8 +162,6 @@ class ResultController extends Controller
             'error_message' => null,
             'completed_at' => null,
         ]);
-
-        return redirect()->route('results.index')->with('status', __('Result removed; run reset to pending.'));
     }
 
     private function authorizeResult(Result $result): void

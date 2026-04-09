@@ -21,17 +21,22 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::delete('csv-upload-batches/{batch}/urls/{url}', [CsvUploadBatchController::class, 'destroyUrl'])->name('csv-upload-batches.destroy-url');
+    Route::post('csv-upload-batches/{batch}/bulk-action-urls', [CsvUploadBatchController::class, 'bulkActionUrls'])->name('csv-upload-batches.bulk-action-urls');
     Route::resource('csv-upload-batches', CsvUploadBatchController::class)->except(['edit', 'update']);
+
     Route::resource('prompts', PromptController::class);
-    Route::resource('qa-runs', QaRunController::class)->except(['edit', 'update']);
+
+    Route::post('qa-runs-bulk', [QaRunController::class, 'bulkAction'])->name('qa-runs.bulk-action');
     Route::post('qa-runs/{qa_run}/toggle', [QaRunController::class, 'toggle'])->name('qa-runs.toggle');
     Route::post('qa-runs/{qa_run}/retry', [QaRunController::class, 'retry'])->name('qa-runs.retry');
+    Route::resource('qa-runs', QaRunController::class)->except(['edit', 'update']);
 
-    Route::get('results', [ResultController::class, 'index'])->name('results.index');
-    Route::get('results/export', [ResultController::class, 'export'])->name('results.export');
-    Route::get('results/{result}', [ResultController::class, 'show'])->name('results.show');
+    Route::post('results-bulk-delete', [ResultController::class, 'bulkDestroy'])->name('results.bulk-destroy');
+    Route::post('results-bulk-export', [ResultController::class, 'bulkExport'])->name('results.bulk-export');
+    Route::get('results-export', [ResultController::class, 'export'])->name('results.export');
     Route::get('results/{result}/download', [ResultController::class, 'download'])->name('results.download');
-    Route::delete('results/{result}', [ResultController::class, 'destroy'])->name('results.destroy');
+    Route::resource('results', ResultController::class)->only(['index', 'show', 'destroy']);
 
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [SettingController::class, 'update'])->name('settings.update');

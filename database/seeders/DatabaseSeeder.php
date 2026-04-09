@@ -22,8 +22,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SettingSeeder::class,
             PromptSeeder::class,
-            CsvUploadBatchSeeder::class,
-            QaRunSeeder::class,
+            // CsvUploadBatchSeeder::class,
+            // QaRunSeeder::class,
         ]);
     }
 }

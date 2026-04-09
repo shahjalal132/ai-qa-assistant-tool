@@ -154,6 +154,53 @@ class QaRunController extends Controller
         return back()->with('status', __('Run re-queued.'));
     }
 
+    public function bulkAction(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['exists:qa_runs,id'],
+            'action' => ['required', 'string', 'in:retry,delete,activate,deactivate'],
+        ]);
+
+        $runs = QaRun::whereIn('id', $data['ids'])->get();
+
+        foreach ($runs as $run) {
+            $this->authorizeRun($run);
+        }
+
+        switch ($data['action']) {
+            case 'retry':
+                foreach ($runs as $run) {
+                    $run->result()?->delete();
+                    $run->update([
+                        'status' => 'pending',
+                        'error_message' => null,
+                        'started_at' => null,
+                        'completed_at' => null,
+                    ]);
+                    ProcessQA::dispatch($run->id);
+                }
+                $message = __('Selected runs re-queued.');
+                break;
+            case 'delete':
+                foreach ($runs as $run) {
+                    $run->delete();
+                }
+                $message = __('Selected runs deleted.');
+                break;
+            case 'activate':
+                QaRun::whereIn('id', $data['ids'])->update(['is_active' => true]);
+                $message = __('Selected runs activated.');
+                break;
+            case 'deactivate':
+                QaRun::whereIn('id', $data['ids'])->update(['is_active' => false]);
+                $message = __('Selected runs deactivated.');
+                break;
+        }
+
+        return back()->with('status', $message);
+    }
+
     private function authorizeRun(QaRun $qaRun): void
     {
         $qaRun->loadMissing('reportUrl.csvUploadBatch');
