@@ -54,6 +54,8 @@ class QaRunController extends Controller
             'csv_upload_batch_id' => ['required', 'exists:csv_upload_batches,id'],
             'prompt_id' => ['required', 'exists:prompts,id'],
             'dispatch' => ['sometimes', 'boolean'],
+            'ids' => ['sometimes', 'array'],
+            'ids.*' => ['exists:report_urls,id'],
         ]);
 
         $batch = CsvUploadBatch::query()->findOrFail($data['csv_upload_batch_id']);
@@ -62,9 +64,11 @@ class QaRunController extends Controller
         $prompt = Prompt::query()->findOrFail($data['prompt_id']);
         abort_unless($prompt->is_active, 422, __('Prompt is inactive.'));
 
-        $reportUrlIds = ReportUrl::query()
-            ->where('csv_upload_batch_id', $batch->id)
-            ->pluck('id');
+        $query = ReportUrl::query()->where('csv_upload_batch_id', $batch->id);
+        if ($request->filled('ids')) {
+            $query->whereIn('id', $data['ids']);
+        }
+        $reportUrlIds = $query->pluck('id');
 
         $existingReportUrlIds = QaRun::query()
             ->where('prompt_id', $prompt->id)
@@ -164,12 +168,14 @@ class QaRunController extends Controller
 
         $runs = QaRun::whereIn('id', $data['ids'])->get();
 
+        /** @var QaRun $run */
         foreach ($runs as $run) {
             $this->authorizeRun($run);
         }
 
         switch ($data['action']) {
             case 'retry':
+                /** @var QaRun $run */
                 foreach ($runs as $run) {
                     $run->result()?->delete();
                     $run->update([
@@ -183,6 +189,7 @@ class QaRunController extends Controller
                 $message = __('Selected runs re-queued.');
                 break;
             case 'delete':
+                /** @var QaRun $run */
                 foreach ($runs as $run) {
                     $run->delete();
                 }

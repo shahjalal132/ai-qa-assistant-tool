@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::get('csv-upload-batches/{batch}/items', [CsvUploadBatchController::class, 'apiItems'])->name('csv-upload-batches.items');
     Route::delete('csv-upload-batches/{batch}/urls/{url}', [CsvUploadBatchController::class, 'destroyUrl'])->name('csv-upload-batches.destroy-url');
     Route::post('csv-upload-batches/{batch}/bulk-action-urls', [CsvUploadBatchController::class, 'bulkActionUrls'])->name('csv-upload-batches.bulk-action-urls');
     Route::resource('csv-upload-batches', CsvUploadBatchController::class)->except(['edit', 'update']);

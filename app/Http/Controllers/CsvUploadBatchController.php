@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CsvUploadBatch;
 use App\Models\ReportUrl;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -110,6 +111,25 @@ class CsvUploadBatchController extends Controller
 
         return redirect()->route('csv-upload-batches.show', $batch)
             ->with('status', __('Imported :count URL pair(s).', ['count' => $count]));
+    }
+
+    public function apiItems(Request $request, CsvUploadBatch $batch): JsonResponse
+    {
+        $this->authorizeOwner($batch);
+
+        $reportUrls = ReportUrl::query()
+            ->where('csv_upload_batch_id', $batch->id)
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->string('search');
+                $q->where(function ($sq) use ($search) {
+                    $sq->where('english_url', 'like', "%{$search}%")
+                       ->orWhere('welsh_url', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('id')
+            ->paginate(50);
+
+        return response()->json($reportUrls);
     }
 
     public function show(Request $request, CsvUploadBatch $csvUploadBatch): View
