@@ -18,13 +18,13 @@
 
         <style>
             .gradient-text {
-                background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 40%, #34d399 100%);
+                background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
             }
             .hero-bg {
-                background-image: url('https://images.pexels.com/photos/20870794/pexels-photo-20870794.jpeg');
+                background-image: url('{{ asset('assets/images/ai-chat.jpeg') }}');
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;

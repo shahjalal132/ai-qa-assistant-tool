@@ -35,7 +35,7 @@
         /* ── Left Panel ── */
         .panel-left {
             width: 42%;
-            background: linear-gradient(160deg, #7b6ef6 0%, #9990FA 50%, #b8b0ff 100%);
+            background: linear-gradient(160deg, #1abc9c 0%, #16a085 100%);
             padding: 3rem 2.5rem;
             display: flex;
             flex-direction: column;
@@ -169,9 +169,9 @@
             transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
         }
         .input-wrap input:focus {
-            border-color: #9990FA;
+            border-color: #1abc9c;
             background: #fff;
-            box-shadow: 0 0 0 3px rgba(153, 144, 250, 0.15);
+            box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.15);
         }
         .input-wrap input.is-error {
             border-color: #f87171;
@@ -181,7 +181,7 @@
             position: absolute;
             right: 14px; top: 50%;
             transform: translateY(-50%);
-            color: #9990FA;
+            color: #16a085;
             display: flex; align-items: center;
             cursor: pointer;
         }
@@ -210,13 +210,13 @@
         }
         .remember input[type="checkbox"] {
             width: 15px; height: 15px;
-            accent-color: #9990FA;
+            accent-color: #16a085;
             cursor: pointer;
             border-radius: 4px;
         }
         .forgot-link {
             font-size: 0.8rem;
-            color: #9990FA;
+            color: #1abc9c;
             text-decoration: none;
             font-weight: 500;
         }
@@ -226,7 +226,7 @@
         .btn-login {
             width: 100%;
             height: 48px;
-            background: linear-gradient(135deg, #8880f8, #9990FA, #b8b0ff);
+            background: linear-gradient(135deg, #1abc9c, #16a085);
             color: #fff;
             font-family: 'Instrument Sans', sans-serif;
             font-size: 0.925rem;
@@ -236,12 +236,12 @@
             cursor: pointer;
             letter-spacing: 0.02em;
             transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-            box-shadow: 0 4px 18px rgba(153, 144, 250, 0.4);
+            box-shadow: 0 4px 18px rgba(22, 160, 133, 0.4);
         }
         .btn-login:hover {
             opacity: 0.92;
             transform: translateY(-1px);
-            box-shadow: 0 6px 22px rgba(153, 144, 250, 0.5);
+            box-shadow: 0 6px 22px rgba(22, 160, 133, 0.5);
         }
         .btn-login:active { transform: translateY(0); }
 
@@ -260,7 +260,7 @@
             text-decoration: none;
             transition: color 0.2s;
         }
-        .back-link:hover { color: #9990FA; }
+        .back-link:hover { color: #1abc9c; }
 
         /* Responsive */
         @media (max-width: 640px) {
