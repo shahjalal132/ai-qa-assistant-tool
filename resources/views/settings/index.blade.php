@@ -72,13 +72,13 @@
 
                         <div class="flex items-center p-4 bg-gray-50/30 rounded-xl border border-gray-50 group hover:border-[#1abc9c]/20 transition-all">
                              <div class="flex items-center h-5">
+                                <input type="hidden" name="use_dummy_ai" value="0" />
                                 <input id="use_dummy_ai" name="use_dummy_ai" type="checkbox" value="1" class="h-5 w-5 rounded-md border-gray-200 text-[#16a085] focus:ring-[#1abc9c]/40 transition-all cursor-pointer" @checked(old('use_dummy_ai', $use_dummy_ai))>
                             </div>
                             <div class="ml-4 text-sm">
                                 <x-input-label for="use_dummy_ai" :value="__('Enable Dummy AI Mode')" class="font-bold text-gray-700 cursor-pointer" />
                                 <p class="text-xs text-gray-500 font-medium">{{ __('Bypass actual Gemini API calls for testing purposes.') }}</p>
                             </div>
-                            <input type="hidden" name="use_dummy_ai" value="0" />
                         </div>
                     </div>
 
