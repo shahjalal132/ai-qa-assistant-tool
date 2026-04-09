@@ -71,8 +71,8 @@ class ProcessQA implements ShouldBeUnique, ShouldQueue
             $enHtml = $this->fetchBody($urlRow->english_url);
             $cyHtml = $this->fetchBody($urlRow->welsh_url);
 
-            Log::info('Raw enHtml', [$enHtml]);
-            Log::info('Raw cyHtml', [$cyHtml]);
+            // Log::info('Raw enHtml', [$enHtml]);
+            // Log::info('Raw cyHtml', [$cyHtml]);
 
             if ($enHtml === '' || $cyHtml === '') {
                 throw new \RuntimeException('Empty HTML from one or both URLs (blocked, timeout, or non-200).');
@@ -81,8 +81,8 @@ class ProcessQA implements ShouldBeUnique, ShouldQueue
             $enText = $gemini->stripHtmlForTokens($enHtml);
             $cyText = $gemini->stripHtmlForTokens($cyHtml);
 
-            Log::info('Clean enText', [$enText]);
-            Log::info('Clean cyText', [$cyText]);
+            // Log::info('Clean enText', [$enText]);
+            // Log::info('Clean cyText', [$cyText]);
 
             $schema = $prompt->response_schema ?? [];
             if ($schema === []) {

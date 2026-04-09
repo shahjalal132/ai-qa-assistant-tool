@@ -268,124 +268,124 @@
                         </div>
 
                         {{-- Selection Modal --}}
-                        <div x-show="modalOpen" 
-                            x-transition:enter="transition ease-out duration-300"
-                            x-transition:enter-start="opacity-0 scale-95"
-                            x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-200"
-                            x-transition:leave-start="opacity-100 scale-100"
-                            x-transition:leave-end="opacity-0 scale-95"
-                            class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" x-cloak>
-                            
-                            <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="modalOpen = false"></div>
-                            
-                            <div class="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-white/20">
-                                {{-- Modal Header --}}
-                                <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                                    <div>
-                                        <h3 class="text-xl font-extrabold text-gray-900">{{ __('Select Records') }}</h3>
-                                        <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">{{ __('Choose specific URL pairs to analyze') }}</p>
-                                    </div>
-                                    <button type="button" @click="modalOpen = false" class="text-gray-400 hover:text-gray-600 transition-colors bg-white p-2 rounded-xl shadow-sm border border-gray-100">
-                                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                    </button>
-                                </div>
+                        <template x-teleport="body">
+                            <div x-show="modalOpen"
+                                x-transition:enter="transition ease-out duration-300"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-200"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+                                x-cloak>
 
-                                {{-- Modal Search --}}
-                                <div class="px-8 py-4 border-b border-gray-100 bg-white">
-                                    <div class="relative">
-                                        <input type="text" x-model="modalSearch" @input.debounce.300ms="fetchModalData(1)" 
-                                            placeholder="{{ __('Search by URL…') }}" 
-                                            class="w-full pl-12 pr-4 py-3 rounded-2xl border-gray-100 bg-gray-50 focus:bg-white focus:border-[#1abc9c] focus:ring-[#1abc9c]/20 transition-all font-bold text-sm">
-                                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="modalOpen = false"></div>
+
+                                <div class="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-white/20">
+                                    {{-- Modal Header --}}
+                                    <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                                        <div>
+                                            <h3 class="text-xl font-extrabold text-gray-900">{{ __('Select Records') }}</h3>
+                                            <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">{{ __('Choose specific URL pairs to analyze') }}</p>
                                         </div>
+                                        <button type="button" @click="modalOpen = false" class="text-gray-400 hover:text-gray-600 transition-colors bg-white p-2 rounded-xl shadow-sm border border-gray-100">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
                                     </div>
-                                </div>
 
-                                {{-- Modal Content --}}
-                                <div class="flex-1 overflow-y-auto p-8 relative min-h-[400px]">
-                                    {{-- Loader --}}
-                                    <div x-show="loadingModal" x-transition.opacity class="absolute inset-0 z-20 bg-white/60 backdrop-blur-xs flex items-center justify-center">
-                                        <div class="flex flex-col items-center gap-4">
-                                            <div class="h-12 w-12 rounded-2xl bg-[#1abc9c]/10 flex items-center justify-center text-[#16a085]">
-                                                <svg class="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    {{-- Modal Search --}}
+                                    <div class="px-8 py-4 border-b border-gray-100 bg-white">
+                                        <div class="relative">
+                                            <input type="text" x-model="modalSearch" @input.debounce.300ms="fetchModalData(1)"
+                                                placeholder="{{ __('Search by URL…') }}"
+                                                class="w-full pl-12 pr-4 py-3 rounded-2xl border-gray-100 bg-gray-50 focus:bg-white focus:border-[#1abc9c] focus:ring-[#1abc9c]/20 transition-all font-bold text-sm">
+                                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                             </div>
-                                            <span class="text-sm font-bold text-[#16a085]">{{ __('Fetching data…') }}</span>
                                         </div>
                                     </div>
 
-                                    <div x-show="modalData && modalData.data.length > 0">
-                                        <table class="w-full text-sm text-left">
-                                            <thead>
-                                                <tr class="text-xs font-bold text-[#16a085] uppercase tracking-wider">
-                                                    <th class="py-3 px-4 w-10">
-                                                        <input type="checkbox" @change="toggleAllOnPage()" 
-                                                            :checked="modalData && modalData.data.every(i => selectedIds.includes(i.id))"
-                                                            class="rounded border-gray-300 text-[#16a085] focus:ring-[#16a085]/20 h-5 w-5 cursor-pointer transition-all">
-                                                    </th>
-                                                    <th class="py-3 px-4">{{ __('English URL') }}</th>
-                                                    <th class="py-3 px-4">{{ __('Welsh URL') }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-gray-50">
-                                                <template x-for="item in modalData.data" :key="item.id">
-                                                    <tr class="hover:bg-gray-50/80 transition-colors group cursor-pointer" @click="toggleSelection(item.id)">
-                                                        <td class="py-4 px-4 uppercase font-bold text-gray-400">
-                                                            <input type="checkbox" :checked="selectedIds.includes(item.id)" 
+                                    {{-- Modal Content --}}
+                                    <div class="flex-1 overflow-y-auto p-8 relative min-h-[400px]">
+                                        {{-- Loader --}}
+                                        <div x-show="loadingModal" x-transition.opacity class="absolute inset-0 z-20 bg-white/60 backdrop-blur-xs flex items-center justify-center">
+                                            <div class="flex flex-col items-center gap-4">
+                                                <div class="h-12 w-12 rounded-2xl bg-[#1abc9c]/10 flex items-center justify-center text-[#16a085]">
+                                                    <svg class="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                </div>
+                                                <span class="text-sm font-bold text-[#16a085]">{{ __('Fetching data…') }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div x-show="modalData && modalData.data.length > 0">
+                                            <table class="w-full text-sm text-left">
+                                                <thead>
+                                                    <tr class="text-xs font-bold text-[#16a085] uppercase tracking-wider">
+                                                        <th class="py-3 px-4 w-10">
+                                                            <input type="checkbox" @change="toggleAllOnPage()"
+                                                                :checked="modalData && modalData.data.every(i => selectedIds.includes(i.id))"
                                                                 class="rounded border-gray-300 text-[#16a085] focus:ring-[#16a085]/20 h-5 w-5 cursor-pointer transition-all">
-                                                        </td>
-                                                        <td class="py-4 px-4">
-                                                            <div class="text-gray-900 font-bold truncate max-w-[250px]" x-text="item.english_url"></div>
-                                                        </td>
-                                                        <td class="py-4 px-4 font-medium text-gray-500 truncate max-w-[250px]" x-text="item.welsh_url"></td>
+                                                        </th>
+                                                        <th class="py-3 px-4">{{ __('English URL') }}</th>
+                                                        <th class="py-3 px-4">{{ __('Welsh URL') }}</th>
                                                     </tr>
-                                                </template>
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-50">
+                                                    <template x-for="item in modalData.data" :key="item.id">
+                                                        <tr class="hover:bg-gray-50/80 transition-colors group cursor-pointer" @click="toggleSelection(item.id)">
+                                                            <td class="py-4 px-4 uppercase font-bold text-gray-400">
+                                                                <input type="checkbox" :checked="selectedIds.includes(item.id)"
+                                                                    class="rounded border-gray-300 text-[#16a085] focus:ring-[#16a085]/20 h-5 w-5 cursor-pointer transition-all">
+                                                            </td>
+                                                            <td class="py-4 px-4">
+                                                                <div class="text-gray-900 font-bold truncate max-w-[250px]" x-text="item.english_url"></div>
+                                                            </td>
+                                                            <td class="py-4 px-4 font-medium text-gray-500 truncate max-w-[250px]" x-text="item.welsh_url"></td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
 
-                                        {{-- Modal Pagination --}}
-                                        <div class="mt-8 flex items-center justify-between border-t border-gray-100 pt-6">
-                                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest" 
-                                                x-text="`{{ __('Showing') }} ${modalData.from} - ${modalData.to} {{ __('of') }} ${modalData.total}`"></span>
-                                            <div class="flex gap-2">
-                                                <button type="button" @click="fetchModalData(modalPage - 1)" :disabled="modalPage === 1" 
-                                                    class="p-2 rounded-xl border border-gray-100 bg-white text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all shadow-sm">
-                                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                                                </button>
-                                                <button type="button" @click="fetchModalData(modalPage + 1)" :disabled="modalPage === modalData.last_page" 
-                                                    class="p-2 rounded-xl border border-gray-100 bg-white text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all shadow-sm">
-                                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                                                </button>
+                                            {{-- Modal Pagination --}}
+                                            <div class="mt-8 flex items-center justify-between border-t border-gray-100 pt-6">
+                                                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest"
+                                                    x-text="`{{ __('Showing') }} ${modalData.from} - ${modalData.to} {{ __('of') }} ${modalData.total}`"></span>
+                                                <div class="flex gap-2">
+                                                    <button type="button" @click="fetchModalData(modalPage - 1)" :disabled="modalPage === 1"
+                                                        class="p-2 rounded-xl border border-gray-100 bg-white text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all shadow-sm">
+                                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                                                    </button>
+                                                    <button type="button" @click="fetchModalData(modalPage + 1)" :disabled="modalPage === modalData.last_page"
+                                                        class="p-2 rounded-xl border border-gray-100 bg-white text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-all shadow-sm">
+                                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                                    </button>
+                                                </div>
                                             </div>
+                                        </div>
+
+                                        <div x-show="modalData && modalData.data.length === 0" class="flex flex-col items-center justify-center py-12 text-gray-500">
+                                            <svg class="h-16 w-16 text-gray-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <p class="font-bold uppercase tracking-widest text-xs">{{ __('No records found matching your search.') }}</p>
                                         </div>
                                     </div>
 
-                                    <div x-show="modalData && modalData.data.length === 0" class="flex flex-col items-center justify-center py-12 text-gray-500">
-                                        <svg class="h-16 w-16 text-gray-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        <p class="font-bold uppercase tracking-widest text-xs">{{ __('No records found matching your search.') }}</p>
-                                    </div>
-                                </div>
-
-                                {{-- Modal Footer --}}
-                                <div class="px-8 py-6 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                                    <div class="text-sm font-bold text-gray-600">
-                                        <span x-text="selectedIds.length" class="text-[#16a085]"></span> {{ __('records selected globally') }}
-                                    </div>
-                                    <div class="flex gap-4">
-                                        <button type="button" @click="selectedIds = [];" class="px-5 py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-red-600 transition-colors uppercase tracking-widest">
-                                            {{ __('Reset All') }}
-                                        </button>
-                                        <button type="button" @click="modalOpen = false" class="px-8 py-3 rounded-2xl bg-[#16a085] text-white font-bold text-sm shadow-lg hover:bg-[#1abc9c] transition-all duration-300 active:scale-[0.98]">
-                                            {{ __('Apply Selection') }}
-                                        </button>
+                                    {{-- Modal Footer --}}
+                                    <div class="px-8 py-6 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                                        <div class="text-sm font-bold text-gray-600">
+                                            <span x-text="selectedIds.length" class="text-[#16a085]"></span> {{ __('records selected globally') }}
+                                        </div>
+                                        <div class="flex gap-4">
+                                            <button type="button" @click="selectedIds = [];" class="px-5 py-2 rounded-xl text-xs font-bold text-gray-500 hover:text-red-600 transition-colors uppercase tracking-widest">
+                                                {{ __('Reset All') }}
+                                            </button>
+                                            <button type="button" @click="modalOpen = false" class="px-8 py-3 rounded-2xl bg-[#16a085] text-white font-bold text-sm shadow-lg hover:bg-[#1abc9c] transition-all duration-300 active:scale-[0.98]">
+                                                {{ __('Apply Selection') }}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
-                            
-                        </div>
+                        </template>
                     </form>
                 @endif
             </div>
