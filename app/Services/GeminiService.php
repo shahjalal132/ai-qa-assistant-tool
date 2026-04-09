@@ -13,7 +13,7 @@ use RuntimeException;
 class GeminiService
 {
     public function __construct(
-        private string $model = 'gemini-2.0-flash',
+        private string $model = 'gemini-3.1-pro-preview',
     ) {}
 
     /**
