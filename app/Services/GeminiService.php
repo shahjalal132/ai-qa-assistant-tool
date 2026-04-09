@@ -6,6 +6,7 @@ use App\Models\Prompt;
 use App\Models\Setting;
 use DOMXPath;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -423,6 +424,9 @@ class GeminiService
         if (! $response->successful()) {
             throw new RuntimeException('Gemini API error: HTTP '.$response->status().' '.$response->body());
         }
+
+        // log the response body
+        // Log::info('Gemini response', [$response->body()]);
 
         $data = $response->json();
         $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
