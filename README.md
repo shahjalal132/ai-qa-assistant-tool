@@ -1,58 +1,79 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🤖 AI QA Tool: High-Performance Page Auditor
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A professional, Laravel-powered platform designed to automate Quality Assurance (QA) for web content using **Gemini 1.5 Flash**. Specifically built to handle bilingual content analysis (English/Welsh) and complex audit rules with server-side background processing.
 
-## About Laravel
+## 🚀 The Problem vs. The Solution
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+*   **The Old Way:** Browser-based scripts that were slow, timed out on large CSVs, and relied on Gemini's internal (slow) web crawler.
+*   **The Professional Way:** A Laravel-driven architecture using **Redis Queues**. We pre-fetch and clean HTML content server-side, then send optimized payloads to Gemini for sub-second analysis.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ✨ Key Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+-   **Dynamic Prompt Engine:** Create and manage multiple AI "Audit Profiles" (CRUD). Change your QA rules without touching a line of code.
+-   **Structured AI Output:** Uses Gemini’s JSON Schema mode to ensure the AI always returns valid, mapable data.
+-   **Asynchronous Processing:** Powered by Laravel Queues (Redis). Upload a CSV with 1,000+ URLs and let the server handle the heavy lifting in the background.
+-   **Bilingual Analysis:** Specialized logic for English vs. Welsh content matching, link verification, and accessibility checks.
+-   **Dynamic Reporting:** Export results to CSV where columns are automatically generated based on the AI's response keys.
+-   **Automated Deployment:** Includes a custom VPS setup script for a production-ready LEMP stack.
 
-## Learning Laravel
+## 🛠 Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+-   **Framework:** Laravel 13
+-   **AI Engine:** Google Gemini 1.5 Flash (via Structured Outputs)
+-   **Database:** MySQL 8.0
+-   **Cache/Queue:** Redis
+-   **Frontend:** Blade, TailwindCSS, AlpineJS
+-   **Server Management:** Nginx + PM2
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## 📦 Installation
 
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
+### 1. Server Preparation
+Use the [VPS Setup Script](https://github.com/shahjalal132/vps-setup) to prepare your Ubuntu server:
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+sudo bash <(curl -sSL https://raw.githubusercontent.com/shahjalal132/vps-setup/main/setup.sh)
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Application Setup
+```bash
+git clone https://github.com/your-username/ai-qa-tool.git .
+composer install
+npm install && npm run build
+cp .env.example .env
+php artisan key:generate
+```
 
-## Contributing
+### 3. Configure Gemini AI
+Add your API key to the `.env` file:
+```env
+GEMINI_API_KEY=your_api_key_here
+QUEUE_CONNECTION=redis
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4. Start the Engine
+Keep the AI processing workers alive using PM2:
+```bash
+pm2 start "php artisan queue:work --tries=3" --name qa-worker
+```
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 📖 How to Use
 
-## Security Vulnerabilities
+1.  **Define a Prompt:** Go to the "Prompts" page and create a new QA instruction (e.g., "NHS Content Auditor"). Define the JSON schema for the fields you want back (e.g., `h1_match`, `broken_links`).
+2.  **Upload URLs:** Upload your CSV containing the English and Welsh URL pairs.
+3.  **Map & Run:** In the "QA Manager," select your URL batch and the Prompt you want to use. Click **Run**.
+4.  **Monitor:** Watch the progress in real-time. Once completed, download your detailed QA report as a CSV.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## ⚙️ Performance Optimization
+This tool is optimized for speed:
+-   **HTML Stripping:** We remove `<script>`, `<style>`, and `<svg>` tags before sending data to Gemini to save tokens and reduce latency.
+-   **Parallel Workers:** Supports multiple concurrent workers to process dozens of URLs every second.
+-   **Rate Limiting:** Built-in middleware to handle Gemini API rate limits (429 errors) with automatic retries.
 
-## License
+## 📄 License
+This project is licensed under the MIT License.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+*Developed & Maintained by [Muhammad Shahjalal](https://github.com/shahjalal132)*
