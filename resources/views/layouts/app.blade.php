@@ -16,7 +16,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased text-gray-900">
-        <div class="min-h-screen flex bg-[#f8fafc]" x-data="{ sidebarOpen: false }">
+        <div class="h-screen flex overflow-hidden bg-[#f8fafc]" x-data="{ sidebarOpen: false }">
             <div
                 x-show="sidebarOpen"
                 x-transition.opacity
@@ -27,7 +27,7 @@
 
             @include('layouts.navigation')
 
-            <div class="flex flex-1 flex-col min-w-0 min-h-screen">
+            <div class="flex flex-1 flex-col min-w-0 h-screen overflow-y-auto">
                 <div class="md:hidden sticky top-0 z-20 flex items-center gap-3 h-14 px-4 bg-[#16a085] text-white border-b border-white/10 shadow-sm">
                     <button
                         type="button"
@@ -44,7 +44,7 @@
 
                 <!-- Page Heading -->
                 @isset($header)
-                    <header class="bg-white shadow">
+                    <header class="bg-white shadow-sm border-b border-gray-100">
                         <div class="py-6 px-4 sm:px-6 lg:px-8">
                             {{ $header }}
                         </div>

@@ -4,7 +4,7 @@
 >
     <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-white/15 px-4">
         <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center" @click="sidebarOpen = false">
-            <x-application-logo class="block h-9 w-auto fill-current text-white" />
+            <x-application-logo class="block h-9 rounded-full w-auto fill-current text-white" />
         </a>
         <button
             type="button"

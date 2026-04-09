@@ -16,10 +16,12 @@ class SettingController extends Controller
         if ($useDummy === null) {
             $useDummy = (bool) config('qa.use_dummy_ai', true);
         }
+        $appLogo = Setting::getValue('app_logo', '');
 
         return view('settings.index', [
             'gemini_api_key' => $geminiKey,
             'use_dummy_ai' => $useDummy,
+            'app_logo' => $appLogo,
         ]);
     }
 
@@ -28,10 +30,16 @@ class SettingController extends Controller
         $data = $request->validate([
             'gemini_api_key' => ['nullable', 'string', 'max:500'],
             'use_dummy_ai' => ['sometimes', 'boolean'],
+            'app_logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
         ]);
 
         Setting::setValue('gemini_api_key', $data['gemini_api_key'] ?? '');
         Setting::setValue('qa_use_dummy_ai', $request->boolean('use_dummy_ai') ? '1' : '0');
+
+        if ($request->hasFile('app_logo')) {
+            $path = $request->file('app_logo')->store('brand', 'public');
+            Setting::setValue('app_logo', $path);
+        }
 
         return redirect()->route('settings.index')->with('status', __('Settings saved.'));
     }
