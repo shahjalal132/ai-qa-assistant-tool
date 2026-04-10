@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class QaRun extends Model
@@ -46,5 +47,10 @@ class QaRun extends Model
     public function result(): HasOne
     {
         return $this->hasOne(Result::class);
+    }
+
+    public function linkProbes(): HasMany
+    {
+        return $this->hasMany(QaRunLinkProbe::class);
     }
 }

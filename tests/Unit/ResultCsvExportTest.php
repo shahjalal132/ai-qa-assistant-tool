@@ -4,7 +4,7 @@ use App\Http\Controllers\ResultController;
 
 function invokeFormattedExportCell(ResultController $controller, string $key, mixed $value): string
 {
-    $m = new \ReflectionMethod(ResultController::class, 'formatFormattedExportCell');
+    $m = new ReflectionMethod(ResultController::class, 'formatFormattedExportCell');
     $m->setAccessible(true);
 
     return $m->invoke($controller, $key, $value);
@@ -12,7 +12,7 @@ function invokeFormattedExportCell(ResultController $controller, string $key, mi
 
 function invokeFormattedCsvHeaders(ResultController $controller): array
 {
-    $m = new \ReflectionMethod(ResultController::class, 'formattedCsvHeaders');
+    $m = new ReflectionMethod(ResultController::class, 'formattedCsvHeaders');
     $m->setAccessible(true);
 
     return $m->invoke($controller);
@@ -59,10 +59,10 @@ test('formatFormattedExportCell returns missing placeholder for invalid object c
     expect($out)->toBeString()->not->toBe('PASS');
 });
 
-test('formattedCsvHeaders has eleven columns in template order', function () {
+test('formattedCsvHeaders has fourteen columns including inaccessible links', function () {
     $c = new ResultController;
     $headers = invokeFormattedCsvHeaders($c);
-    expect($headers)->toHaveCount(11)
+    expect($headers)->toHaveCount(14)
         ->and($headers[0])->toBeString()
         ->and($headers[1])->toBeString();
 });

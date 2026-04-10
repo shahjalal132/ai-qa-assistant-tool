@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\QaRun;
+use App\Models\QaRunLinkProbe;
 use App\Models\Result;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,7 +41,7 @@ class ResultController extends Controller
     public function show(Result $result): View
     {
         $this->authorizeResult($result);
-        $result->load(['qaRun.prompt', 'qaRun.reportUrl']);
+        $result->load(['qaRun.prompt', 'qaRun.reportUrl', 'qaRun.linkProbes']);
 
         return view('results.show', compact('result'));
     }
@@ -58,42 +60,75 @@ class ResultController extends Controller
 
     public function export(): StreamedResponse
     {
-        $results = Result::query()
-            ->whereHas('qaRun.reportUrl.csvUploadBatch', fn ($q) => $q->where('user_id', auth()->id()))
-            ->with(['qaRun.reportUrl.csvUploadBatch'])
-            ->orderBy('id')
-            ->get();
+        $qaRuns = $this->qaRunsForUserExport();
 
-        return $this->streamFormattedResultsCsv($results);
+        return $this->streamFormattedQaRunsCsv($qaRuns);
     }
 
     /**
-     * @param  Collection<int, Result>|\Illuminate\Database\Eloquent\Collection<int, Result>  $results
+     * Completed and failed QA runs for the current user (via batch ownership).
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, QaRun>
      */
-    private function streamFormattedResultsCsv($results): StreamedResponse
+    private function qaRunsForUserExport()
+    {
+        return QaRun::query()
+            ->whereHas('reportUrl.csvUploadBatch', fn ($q) => $q->where('user_id', auth()->id()))
+            ->whereIn('status', ['completed', 'failed'])
+            ->with(['reportUrl', 'result', 'linkProbes'])
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * @param  Collection<int, QaRun>|\Illuminate\Database\Eloquent\Collection<int, QaRun>  $qaRuns
+     */
+    private function streamFormattedQaRunsCsv($qaRuns): StreamedResponse
     {
         $headers = $this->formattedCsvHeaders();
 
-        return response()->streamDownload(function () use ($results, $headers): void {
+        return response()->streamDownload(function () use ($qaRuns, $headers): void {
             $out = fopen('php://output', 'w');
             if ($out === false) {
                 return;
             }
             fputcsv($out, $headers);
-            foreach ($results as $r) {
-                $en = trim((string) ($r->qaRun->reportUrl->english_url ?? ''));
-                $cy = trim((string) ($r->qaRun->reportUrl->welsh_url ?? ''));
-                $data = is_array($r->data) ? $r->data : [];
-                $row = [$en, $cy];
-                foreach (self::FORMATTED_EXPORT_DATA_KEYS as $key) {
-                    $row[] = $this->formatFormattedExportCell($key, $data[$key] ?? null);
-                }
-                fputcsv($out, $row);
+            foreach ($qaRuns as $run) {
+                fputcsv($out, $this->buildFormattedCsvRow($run));
             }
             fclose($out);
         }, 'qa-results-export.csv', [
             'Content-Type' => 'text/csv',
         ]);
+    }
+
+    private function buildFormattedCsvRow(QaRun $run): array
+    {
+        $en = trim((string) ($run->reportUrl->english_url ?? ''));
+        $cy = trim((string) ($run->reportUrl->welsh_url ?? ''));
+        $na = __('N/A — run failed');
+
+        $row = [
+            $en,
+            $cy,
+            $run->status,
+            $run->status === 'failed' ? (string) ($run->error_message ?? '') : '',
+        ];
+
+        if ($run->status === 'completed' && $run->result) {
+            $data = is_array($run->result->data) ? $run->result->data : [];
+            foreach (self::FORMATTED_EXPORT_DATA_KEYS as $key) {
+                $row[] = $this->formatFormattedExportCell($key, $data[$key] ?? null);
+            }
+            $row[] = $this->formatInaccessibleLinksCell($run);
+        } else {
+            foreach (self::FORMATTED_EXPORT_DATA_KEYS as $_) {
+                $row[] = $na;
+            }
+            $row[] = $na;
+        }
+
+        return $row;
     }
 
     /** @return list<string> */
@@ -102,6 +137,8 @@ class ResultController extends Controller
         return [
             __('English URL'),
             __('Welsh URL'),
+            __('Run status'),
+            __('Error / fetch notes'),
             __('Content match'),
             __('H1 match'),
             __('Format match'),
@@ -111,7 +148,21 @@ class ResultController extends Controller
             __('Welsh doc language'),
             __('Alt text check'),
             __('Broken links'),
+            __('Inaccessible links (machine check)'),
         ];
+    }
+
+    private function formatInaccessibleLinksCell(QaRun $run): string
+    {
+        /** @var \Illuminate\Database\Eloquent\Collection<int, QaRunLinkProbe> $probes */
+        $probes = $run->linkProbes->filter(fn (QaRunLinkProbe $p) => $p->outcome_label !== 'reachable');
+        if ($probes->isEmpty()) {
+            return __('None (all checked links reachable).');
+        }
+
+        return $probes
+            ->map(fn (QaRunLinkProbe $p) => $p->url.' | HTTP '.$p->http_status.' | '.$p->outcome_label.($p->is_critical ? ' [critical]' : ''))
+            ->implode('; ');
     }
 
     private function formatFormattedExportCell(string $dataKey, mixed $value): string
@@ -178,17 +229,26 @@ class ResultController extends Controller
             'ids.*' => ['exists:results,id'],
         ]);
 
-        $results = Result::whereIn('id', $data['ids'])
+        $qaRunIds = Result::query()
+            ->whereIn('id', $data['ids'])
             ->whereHas('qaRun.reportUrl.csvUploadBatch', fn ($q) => $q->where('user_id', auth()->id()))
-            ->with(['qaRun.reportUrl.csvUploadBatch'])
+            ->pluck('qa_run_id')
+            ->unique()
+            ->values();
+
+        $qaRuns = QaRun::query()
+            ->whereIn('id', $qaRunIds)
+            ->with(['reportUrl', 'result', 'linkProbes'])
+            ->orderBy('id')
             ->get();
 
-        return $this->streamFormattedResultsCsv($results);
+        return $this->streamFormattedQaRunsCsv($qaRuns);
     }
 
     private function removeResult(Result $result): void
     {
         $run = $result->qaRun;
+        $run?->linkProbes()->delete();
         $result->delete();
         $run?->update([
             'status' => 'pending',

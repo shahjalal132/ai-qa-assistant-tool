@@ -25,6 +25,8 @@ IMPORTANT RULES:
   - OK if missing on BOTH pages
   - FAIL only if present AND different
 - The content provided is CLEANED HTML - examine the HTML tags and structure
+- If a line starts with "[English page unavailable for QA" or "[Welsh page unavailable for QA", that side failed automated fetch — FAIL content_match and other structural checks with a clear reason; do not treat the bracket text as real page content.
+- If the message includes MACHINE_VERIFIED (unauthenticated HEAD/GET from QA worker), trust those lines for whether each listed download URL was reachable without cookies. You cannot open binary files yourself; do not contradict MACHINE_VERIFIED outcomes for download reachability.
 
 CHECK:
 
@@ -53,7 +55,7 @@ CHECK:
 - ONLY check if section exists
 - If present:
   - filename must match H1
-  - file must open successfully
+  - use MACHINE_VERIFIED results when provided for whether the download URL responded OK without authentication; otherwise infer only from HTML (weaker)
   - Welsh file must contain Welsh language
 - If not present → PASS
 

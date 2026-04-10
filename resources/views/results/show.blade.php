@@ -46,6 +46,54 @@
                     </div>
                 </div>
             </div>
+
+            @php
+                $failedProbes = $result->qaRun->linkProbes->filter(fn ($p) => $p->outcome_label !== 'reachable')->values();
+            @endphp
+            @if ($failedProbes->isNotEmpty())
+                @php
+                    $probesSorted = $failedProbes->sort(function ($a, $b) {
+                        if ($a->page_side !== $b->page_side) {
+                            return $a->page_side <=> $b->page_side;
+                        }
+                        if ($a->is_critical !== $b->is_critical) {
+                            return $b->is_critical <=> $a->is_critical;
+                        }
+
+                        return $a->url <=> $b->url;
+                    })->values();
+                @endphp
+                <div class="bg-white/80 backdrop-blur-md border border-gray-100 shadow-xl sm:rounded-3xl overflow-hidden">
+                    <div class="p-6 border-b border-gray-50 bg-gray-50/30">
+                        <h2 class="text-lg font-bold text-gray-900">{{ __('Link checks (HEAD, unauthenticated)') }}</h2>
+                        <p class="text-xs text-gray-500 mt-1">{{ __('Only non-reachable or error responses are stored. Same as the “Inaccessible links” CSV column. Critical = NHS download button or /app/uploads/ URL.') }}</p>
+                    </div>
+                    <div class="overflow-x-auto max-h-[50vh] overflow-y-auto">
+                        <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <thead class="bg-gray-50/80 sticky top-0">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-bold text-[#16a085] uppercase">{{ __('Side') }}</th>
+                                    <th class="px-4 py-2 text-left text-xs font-bold text-[#16a085] uppercase">{{ __('Critical') }}</th>
+                                    <th class="px-4 py-2 text-left text-xs font-bold text-[#16a085] uppercase">{{ __('HTTP') }}</th>
+                                    <th class="px-4 py-2 text-left text-xs font-bold text-[#16a085] uppercase">{{ __('Outcome') }}</th>
+                                    <th class="px-4 py-2 text-left text-xs font-bold text-[#16a085] uppercase">{{ __('URL') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                @foreach ($probesSorted as $probe)
+                                    <tr class="bg-red-50/50">
+                                        <td class="px-4 py-2 font-mono text-xs text-gray-600">{{ strtoupper($probe->page_side) }}</td>
+                                        <td class="px-4 py-2 text-xs">{{ $probe->is_critical ? __('Yes') : __('No') }}</td>
+                                        <td class="px-4 py-2 font-mono text-xs">{{ $probe->http_status }}</td>
+                                        <td class="px-4 py-2 text-xs font-medium">{{ $probe->outcome_label }}</td>
+                                        <td class="px-4 py-2 text-xs break-all text-gray-700"><a href="{{ $probe->url }}" target="_blank" rel="noopener" class="text-[#16a085] hover:underline">{{ $probe->url }}</a></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

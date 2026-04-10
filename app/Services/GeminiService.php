@@ -395,7 +395,7 @@ class GeminiService
      * @param  array<string, mixed>  $schema  Gemini response_schema (JSON Schema object)
      * @return array<string, mixed> Decoded JSON object from the model response
      */
-    public function analyze(Prompt $prompt, string $enContent, string $cyContent, array $schema, ?string $modelId = null): array
+    public function analyze(Prompt $prompt, string $enContent, string $cyContent, array $schema, ?string $modelId = null, ?string $machineVerifiedPrefix = null): array
     {
         $apiKey = Setting::getValue('gemini_api_key', '') ?? '';
         if ($apiKey === '') {
@@ -403,11 +403,14 @@ class GeminiService
         }
 
         $instruction = $prompt->system_instruction;
+        $prefix = ($machineVerifiedPrefix !== null && $machineVerifiedPrefix !== '')
+            ? $machineVerifiedPrefix."\n\n"
+            : '';
         $body = [
             'contents' => [
                 [
                     'parts' => [
-                        ['text' => "English page content:\n{$enContent}\n\nWelsh page content:\n{$cyContent}\n\nInstruction:\n{$instruction}"],
+                        ['text' => "{$prefix}English page content:\n{$enContent}\n\nWelsh page content:\n{$cyContent}\n\nInstruction:\n{$instruction}"],
                     ],
                 ],
             ],
@@ -516,15 +519,18 @@ class GeminiService
      * Same contract as {@see analyze()} for smoke tests: short, valid NHS-style JSON.
      * Uses EN/CY content lengths only in reasons for quick sanity checks.
      */
-    public function dummyAnalyze(Prompt $prompt, string $enContent, string $cyContent, array $schema): array
+    public function dummyAnalyze(Prompt $prompt, string $enContent, string $cyContent, array $schema, ?string $machineVerifiedPrefix = null): array
     {
         $enLen = strlen($enContent);
         $cyLen = strlen($cyContent);
+        $probeNote = ($machineVerifiedPrefix !== null && $machineVerifiedPrefix !== '')
+            ? ' Dummy: machine-verified link block present ('.strlen($machineVerifiedPrefix).' chars).'
+            : '';
 
         return [
             'content_match' => [
                 'pass' => true,
-                'reason' => "Dummy: compared stripped text lengths en={$enLen} cy={$cyLen} for prompt #{$prompt->getKey()}.",
+                'reason' => "Dummy: compared stripped text lengths en={$enLen} cy={$cyLen} for prompt #{$prompt->getKey()}.{$probeNote}",
             ],
             'h1_match' => ['pass' => true, 'reason' => 'Dummy: not evaluated.'],
             'format_match' => ['pass' => true, 'reason' => 'Dummy: not evaluated.'],
