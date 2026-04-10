@@ -66,6 +66,17 @@
                             modalData: null,
                             modalPage: 1,
                             modalSearch: '',
+                            modalStatusFilter: '',
+
+                            statusBadgeClass(s) {
+                                const map = {
+                                    pending: 'bg-gray-100 text-gray-500',
+                                    processing: 'bg-blue-50 text-blue-600 animate-pulse',
+                                    completed: 'bg-[#1abc9c]/10 text-[#16a085]',
+                                    failed: 'bg-red-50 text-red-600',
+                                };
+                                return map[s] || 'bg-gray-100 text-gray-500';
+                            },
 
                             async submitRuns(e) {
                                 e.preventDefault();
@@ -113,16 +124,27 @@
                             async openModal() {
                                 if (!this.selectedBatchId) return;
                                 this.modalOpen = true;
-                                if (!this.modalData) {
-                                    await this.fetchModalData();
-                                }
+                                await this.fetchModalData(this.modalPage);
                             },
 
                             async fetchModalData(page = 1) {
                                 this.loadingModal = true;
                                 try {
-                                    const url = `/csv-upload-batches/${this.selectedBatchId}/items?page=${page}&search=${this.modalSearch}`;
-                                    const res = await fetch(url);
+                                    const params = new URLSearchParams();
+                                    params.set('page', String(page));
+                                    if (this.modalSearch) {
+                                        params.set('search', this.modalSearch);
+                                    }
+                                    if (this.modalStatusFilter) {
+                                        params.set('status', this.modalStatusFilter);
+                                    }
+                                    const url = `/csv-upload-batches/${this.selectedBatchId}/items?${params.toString()}`;
+                                    const res = await fetch(url, {
+                                        headers: {
+                                            'Accept': 'application/json',
+                                            'X-Requested-With': 'XMLHttpRequest',
+                                        },
+                                    });
                                     this.modalData = await res.json();
                                     this.modalPage = page;
                                 } catch (err) {
@@ -162,6 +184,7 @@
                                 this.modalData = null;
                                 this.modalPage = 1;
                                 this.modalSearch = '';
+                                this.modalStatusFilter = '';
                             }
                         }"
                         @submit="submitRuns($event)"
@@ -323,14 +346,32 @@
                                         </button>
                                     </div>
 
-                                    {{-- Modal Search --}}
+                                    {{-- Modal search + status filter --}}
                                     <div class="px-8 py-4 border-b border-gray-100 bg-white">
-                                        <div class="relative">
-                                            <input type="text" x-model="modalSearch" @input.debounce.300ms="fetchModalData(1)"
-                                                placeholder="{{ __('Search by URL…') }}"
-                                                class="w-full pl-12 pr-4 py-3 rounded-2xl border-gray-100 bg-gray-50 focus:bg-white focus:border-[#1abc9c] focus:ring-[#1abc9c]/20 transition-all font-bold text-sm">
-                                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:gap-6">
+                                            <div class="relative flex-1 min-w-0">
+                                                <input type="text" x-model="modalSearch" @input.debounce.300ms="fetchModalData(1)"
+                                                    placeholder="{{ __('Search by URL…') }}"
+                                                    class="w-full pl-12 pr-4 py-3 rounded-2xl border-gray-100 bg-gray-50 focus:bg-white focus:border-[#1abc9c] focus:ring-[#1abc9c]/20 transition-all font-bold text-sm">
+                                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                                </div>
+                                            </div>
+                                            <div class="w-full lg:w-52 shrink-0">
+                                                <label for="modal-status-filter" class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 px-1">{{ __('Status') }}</label>
+                                                <div class="relative">
+                                                    <select id="modal-status-filter" x-model="modalStatusFilter" @change="fetchModalData(1)"
+                                                        class="block w-full rounded-2xl border-gray-100 bg-gray-50 py-3 pl-4 pr-10 text-sm font-bold text-gray-700 focus:border-[#1abc9c] focus:ring-[#1abc9c]/20 shadow-sm transition-all appearance-none cursor-pointer">
+                                                        <option value="">{{ __('All statuses') }}</option>
+                                                        <option value="pending">{{ __('Pending') }}</option>
+                                                        <option value="processing">{{ __('Processing') }}</option>
+                                                        <option value="completed">{{ __('Completed') }}</option>
+                                                        <option value="failed">{{ __('Failed') }}</option>
+                                                    </select>
+                                                    <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400">
+                                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -358,6 +399,7 @@
                                                         </th>
                                                         <th class="py-3 px-4">{{ __('English URL') }}</th>
                                                         <th class="py-3 px-4">{{ __('Welsh URL') }}</th>
+                                                        <th class="py-3 px-4 text-right whitespace-nowrap">{{ __('Status') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-50">
@@ -371,6 +413,13 @@
                                                                 <div class="text-gray-900 font-bold truncate max-w-[250px]" x-text="item.english_url"></div>
                                                             </td>
                                                             <td class="py-4 px-4 font-medium text-gray-500 truncate max-w-[250px]" x-text="item.welsh_url"></td>
+                                                            <td class="py-4 px-4 text-right align-middle">
+                                                                <span
+                                                                    class="inline-flex items-center justify-end px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                                                                    :class="statusBadgeClass(item.display_status)"
+                                                                    x-text="item.display_status"
+                                                                ></span>
+                                                            </td>
                                                         </tr>
                                                     </template>
                                                 </tbody>

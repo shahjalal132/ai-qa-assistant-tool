@@ -117,6 +117,12 @@ class CsvUploadBatchController extends Controller
     {
         $this->authorizeOwner($batch);
 
+        $statusFilter = $request->query('status');
+        $allowedStatuses = ['pending', 'processing', 'completed', 'failed'];
+        if (! is_string($statusFilter) || ! in_array($statusFilter, $allowedStatuses, true)) {
+            $statusFilter = null;
+        }
+
         $reportUrls = ReportUrl::query()
             ->where('csv_upload_batch_id', $batch->id)
             ->with('latestQaRun')
@@ -127,8 +133,22 @@ class CsvUploadBatchController extends Controller
                         ->orWhere('welsh_url', 'like', "%{$search}%");
                 });
             })
+            ->when($statusFilter !== null, function ($q) use ($statusFilter): void {
+                $q->whereRaw(
+                    'COALESCE((SELECT qa_runs.status FROM qa_runs WHERE qa_runs.report_url_id = report_urls.id ORDER BY qa_runs.updated_at DESC, qa_runs.id DESC LIMIT 1), report_urls.status) = ?',
+                    [$statusFilter]
+                );
+            })
             ->orderBy('id')
-            ->paginate(50);
+            ->paginate(50)
+            ->through(static function (ReportUrl $url): array {
+                return [
+                    'id' => $url->id,
+                    'english_url' => $url->english_url,
+                    'welsh_url' => $url->welsh_url,
+                    'display_status' => $url->latestQaRun?->status ?? $url->status,
+                ];
+            });
 
         return response()->json($reportUrls);
     }
