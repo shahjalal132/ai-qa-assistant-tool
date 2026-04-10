@@ -6,11 +6,25 @@ use App\Models\Result;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ResultController extends Controller
 {
+    /** @var list<string> Keys in `result.data`, matching formatted NHS export column order after URL columns. */
+    private const FORMATTED_EXPORT_DATA_KEYS = [
+        'content_match',
+        'h1_match',
+        'format_match',
+        'author_match',
+        'nhsuk_tag_match',
+        'report_download_match',
+        'welsh_doc_language',
+        'alt_text_check',
+        'broken_links',
+    ];
+
     public function index(Request $request): View
     {
         $results = Result::query()
@@ -46,45 +60,33 @@ class ResultController extends Controller
     {
         $results = Result::query()
             ->whereHas('qaRun.reportUrl.csvUploadBatch', fn ($q) => $q->where('user_id', auth()->id()))
-            ->with(['qaRun.prompt', 'qaRun.reportUrl.csvUploadBatch'])
+            ->with(['qaRun.reportUrl.csvUploadBatch'])
             ->orderBy('id')
             ->get();
 
-        $headers = ['result_id', 'qa_run_id', 'english_url', 'welsh_url', 'prompt_title'];
-        $dynamicKeys = [];
-        foreach ($results as $r) {
-            if (is_array($r->data)) {
-                foreach (array_keys($r->data) as $k) {
-                    $dynamicKeys[$k] = true;
-                }
-            }
-        }
-        $extra = array_keys($dynamicKeys);
-        sort($extra);
-        $allHeaders = array_merge($headers, $extra);
-
-        return $this->streamCsv($results, $allHeaders, $extra);
+        return $this->streamFormattedResultsCsv($results);
     }
 
-    private function streamCsv($results, array $allHeaders, array $extra): StreamedResponse
+    /**
+     * @param  Collection<int, Result>|\Illuminate\Database\Eloquent\Collection<int, Result>  $results
+     */
+    private function streamFormattedResultsCsv($results): StreamedResponse
     {
-        return response()->streamDownload(function () use ($results, $allHeaders, $extra): void {
+        $headers = $this->formattedCsvHeaders();
+
+        return response()->streamDownload(function () use ($results, $headers): void {
             $out = fopen('php://output', 'w');
             if ($out === false) {
                 return;
             }
-            fputcsv($out, $allHeaders);
+            fputcsv($out, $headers);
             foreach ($results as $r) {
-                $row = [
-                    $r->id,
-                    $r->qa_run_id,
-                    $r->qaRun->reportUrl->english_url ?? '',
-                    $r->qaRun->reportUrl->welsh_url ?? '',
-                    $r->qaRun->prompt->title ?? '',
-                ];
+                $en = trim((string) ($r->qaRun->reportUrl->english_url ?? ''));
+                $cy = trim((string) ($r->qaRun->reportUrl->welsh_url ?? ''));
                 $data = is_array($r->data) ? $r->data : [];
-                foreach ($extra as $key) {
-                    $row[] = $this->formatResultCsvCell($data[$key] ?? null);
+                $row = [$en, $cy];
+                foreach (self::FORMATTED_EXPORT_DATA_KEYS as $key) {
+                    $row[] = $this->formatFormattedExportCell($key, $data[$key] ?? null);
                 }
                 fputcsv($out, $row);
             }
@@ -92,6 +94,54 @@ class ResultController extends Controller
         }, 'qa-results-export.csv', [
             'Content-Type' => 'text/csv',
         ]);
+    }
+
+    /** @return list<string> */
+    private function formattedCsvHeaders(): array
+    {
+        return [
+            __('English URL'),
+            __('Welsh URL'),
+            __('Content match'),
+            __('H1 match'),
+            __('Format match'),
+            __('Author match'),
+            __('NHSUK tag match'),
+            __('Report download match'),
+            __('Welsh doc language'),
+            __('Alt text check'),
+            __('Broken links'),
+        ];
+    }
+
+    private function formatFormattedExportCell(string $dataKey, mixed $value): string
+    {
+        $missing = __('Not provided in audit output (incomplete response; re-run QA or review manually).');
+
+        if ($dataKey === 'broken_links') {
+            if ($value === null) {
+                return $missing;
+            }
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+
+            return $missing;
+        }
+
+        if (! is_array($value)) {
+            return $missing;
+        }
+
+        $passOk = array_key_exists('pass', $value) && is_bool($value['pass']);
+        $reason = $value['reason'] ?? null;
+        $reasonOk = is_string($reason) && trim($reason) !== '';
+
+        if (! $passOk || ! $reasonOk) {
+            return $missing;
+        }
+
+        return $value['pass'] ? 'PASS' : 'FAIL - '.trim($reason);
     }
 
     public function destroy(Result $result): RedirectResponse
@@ -130,23 +180,10 @@ class ResultController extends Controller
 
         $results = Result::whereIn('id', $data['ids'])
             ->whereHas('qaRun.reportUrl.csvUploadBatch', fn ($q) => $q->where('user_id', auth()->id()))
-            ->with(['qaRun.prompt', 'qaRun.reportUrl.csvUploadBatch'])
+            ->with(['qaRun.reportUrl.csvUploadBatch'])
             ->get();
 
-        $headers = ['result_id', 'qa_run_id', 'english_url', 'welsh_url', 'prompt_title'];
-        $dynamicKeys = [];
-        foreach ($results as $r) {
-            if (is_array($r->data)) {
-                foreach (array_keys($r->data) as $k) {
-                    $dynamicKeys[$k] = true;
-                }
-            }
-        }
-        $extra = array_keys($dynamicKeys);
-        sort($extra);
-        $allHeaders = array_merge($headers, $extra);
-
-        return $this->streamCsv($results, $allHeaders, $extra);
+        return $this->streamFormattedResultsCsv($results);
     }
 
     private function removeResult(Result $result): void
@@ -165,33 +202,5 @@ class ResultController extends Controller
         $result->loadMissing('qaRun.reportUrl.csvUploadBatch');
         $batch = $result->qaRun?->reportUrl?->csvUploadBatch;
         abort_unless($batch && $batch->user_id === auth()->id(), 403);
-    }
-
-    /**
-     * @param  mixed  $val  JSON value from result.data (scalar or array)
-     */
-    private function formatResultCsvCell(mixed $val): string
-    {
-        $missing = __('Not provided in audit output (incomplete response; re-run QA or review manually).');
-
-        if (is_array($val)) {
-            $encoded = json_encode($val);
-
-            return is_string($encoded) ? $encoded : $missing;
-        }
-
-        if ($val === null) {
-            return $missing;
-        }
-
-        if (is_string($val) && trim($val) === '') {
-            return $missing;
-        }
-
-        if (is_bool($val)) {
-            return $val ? '1' : '0';
-        }
-
-        return (string) $val;
     }
 }
