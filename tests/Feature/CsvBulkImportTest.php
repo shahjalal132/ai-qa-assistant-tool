@@ -8,6 +8,18 @@ use App\Models\ReportUrl;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 
+test('csv upload accepts utf-8 bom on header row', function () {
+    $user = User::factory()->create();
+    $csv = "\xEF\xBB\xBFenglish_url,welsh_url\nhttps://en.example/a,https://cy.example/a\n";
+    $file = UploadedFile::fake()->createWithContent('bom.csv', $csv);
+
+    $this->actingAs($user)
+        ->post(route('csv-upload-batches.store'), ['csv' => $file])
+        ->assertRedirect();
+
+    expect(ReportUrl::query()->count())->toBe(1);
+});
+
 test('csv upload bulk inserts report urls', function () {
     $user = User::factory()->create();
     $csv = "english_url,welsh_url,title\nhttps://en.example/a,https://cy.example/a,First\nhttps://en.example/b,https://cy.example/b,Second\n";

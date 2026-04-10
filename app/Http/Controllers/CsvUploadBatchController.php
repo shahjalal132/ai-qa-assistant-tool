@@ -46,7 +46,13 @@ class CsvUploadBatchController extends Controller
             return back()->withErrors(['csv' => __('The CSV file is empty.')])->withInput();
         }
 
-        $headers = array_map(fn ($h) => strtolower(trim((string) $h)), $headerRow);
+        $headers = array_map(function ($h) {
+            $h = (string) $h;
+            // UTF-8 BOM (common from Excel / “UTF-8 CSV”) breaks the first column name match.
+            $h = preg_replace('/^\xEF\xBB\xBF/', '', $h);
+
+            return strtolower(trim($h));
+        }, $headerRow);
         $enIdx = $this->resolveColumn($headers, ['english_url', 'english']);
         $cyIdx = $this->resolveColumn($headers, ['welsh_url', 'welsh', 'cymraeg']);
 
