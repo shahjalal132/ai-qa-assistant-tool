@@ -76,6 +76,14 @@
                                     <th class="px-6 py-4 text-right text-xs font-bold text-[#16a085] uppercase tracking-wider w-24">{{ __('Action') }}</th>
                                 </tr>
                             </thead>
+                            @php
+                                $urlPairStatusColors = [
+                                    'pending' => 'bg-gray-100 text-gray-500',
+                                    'processing' => 'bg-blue-50 text-blue-600 animate-pulse',
+                                    'completed' => 'bg-[#1abc9c]/10 text-[#16a085]',
+                                    'failed' => 'bg-red-50 text-red-600',
+                                ];
+                            @endphp
                             <tbody class="divide-y divide-gray-50">
                                 @forelse ($reportUrls as $row)
                                     <tr class="hover:bg-gray-50/50 transition-colors group">
@@ -96,8 +104,12 @@
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 text-right">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600">
-                                                {{ $row->status }}
+                                            @php
+                                                $rowStatus = $row->latestQaRun?->status ?? $row->status;
+                                                $statusBadgeClass = $urlPairStatusColors[$rowStatus] ?? 'bg-gray-100 text-gray-500';
+                                            @endphp
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $statusBadgeClass }}">
+                                                {{ $rowStatus }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 text-right">

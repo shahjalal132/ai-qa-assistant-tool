@@ -119,11 +119,12 @@ class CsvUploadBatchController extends Controller
 
         $reportUrls = ReportUrl::query()
             ->where('csv_upload_batch_id', $batch->id)
+            ->with('latestQaRun')
             ->when($request->filled('search'), function ($q) use ($request) {
                 $search = $request->string('search');
                 $q->where(function ($sq) use ($search) {
                     $sq->where('english_url', 'like', "%{$search}%")
-                       ->orWhere('welsh_url', 'like', "%{$search}%");
+                        ->orWhere('welsh_url', 'like', "%{$search}%");
                 });
             })
             ->orderBy('id')
@@ -138,11 +139,12 @@ class CsvUploadBatchController extends Controller
 
         $reportUrls = ReportUrl::query()
             ->where('csv_upload_batch_id', $csvUploadBatch->id)
+            ->with('latestQaRun')
             ->when($request->filled('search'), function ($q) use ($request) {
                 $search = $request->string('search');
                 $q->where(function ($sq) use ($search) {
                     $sq->where('english_url', 'like', "%{$search}%")
-                       ->orWhere('welsh_url', 'like', "%{$search}%");
+                        ->orWhere('welsh_url', 'like', "%{$search}%");
                 });
             })
             ->orderBy('id')
@@ -151,7 +153,7 @@ class CsvUploadBatchController extends Controller
 
         return view('csv-upload-batches.show', [
             'batch' => $csvUploadBatch,
-            'reportUrls' => $reportUrls
+            'reportUrls' => $reportUrls,
         ]);
     }
 

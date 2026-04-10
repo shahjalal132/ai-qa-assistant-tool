@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 class ReportUrl extends Model
@@ -33,6 +34,14 @@ class ReportUrl extends Model
     public function qaRuns(): HasMany
     {
         return $this->hasMany(QaRun::class);
+    }
+
+    /**
+     * The QA run most recently updated (processing/completed/failed), for batch UI status.
+     */
+    public function latestQaRun(): HasOne
+    {
+        return $this->hasOne(QaRun::class)->latestOfMany('updated_at');
     }
 
     /**
