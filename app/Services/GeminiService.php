@@ -449,6 +449,70 @@ class GeminiService
     }
 
     /**
+     * Ensure every property from the prompt JSON schema is present so CSV exports and reports stay readable.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<string, mixed>  $schema  JSON Schema fragment (expects top-level 'properties')
+     * @return array<string, mixed>
+     */
+    public function normalizeQaResultAgainstSchema(array $data, array $schema): array
+    {
+        $properties = $schema['properties'] ?? null;
+        if (! is_array($properties) || $properties === []) {
+            return $data;
+        }
+
+        $missingObject = static fn (): array => [
+            'pass' => true,
+            'reason' => 'Not returned by the automated audit; treat as needing manual review or re-run the QA job.',
+        ];
+
+        $missingString = 'Not returned by the automated audit; no broken-link summary was provided. Re-run the QA job or check manually.';
+
+        foreach ($properties as $key => $def) {
+            if (! is_string($key) || ! is_array($def)) {
+                continue;
+            }
+
+            $type = $def['type'] ?? null;
+            $current = $data[$key] ?? null;
+
+            if ($type === 'string') {
+                if (! is_string($current) || trim($current) === '') {
+                    $data[$key] = $missingString;
+                }
+
+                continue;
+            }
+
+            if ($type === 'object') {
+                if (! is_array($current)) {
+                    $data[$key] = $missingObject();
+
+                    continue;
+                }
+
+                $passOk = array_key_exists('pass', $current) && is_bool($current['pass']);
+                $reason = $current['reason'] ?? null;
+                $reasonOk = is_string($reason) && trim($reason) !== '';
+
+                if (! $passOk || ! $reasonOk) {
+                    $data[$key] = $missingObject();
+
+                    continue;
+                }
+
+                $data[$key] = [
+                    'pass' => $current['pass'],
+                    'reason' => trim($reason),
+                ];
+            }
+        }
+
+        return $data;
+    }
+
+    /**
      * Same contract as {@see analyze()} for smoke tests: short, valid NHS-style JSON.
      * Uses EN/CY content lengths only in reasons for quick sanity checks.
      */

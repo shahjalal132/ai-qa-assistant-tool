@@ -72,6 +72,9 @@ CHECK:
 RETURN ONLY VALID JSON.
 
 CRITICAL:
+- You MUST return every JSON key listed below on every response. Never omit a key.
+- For each object check: always include both "pass" (boolean) and "reason" (non-empty string). When there is no issue, say so clearly (e.g. "No problems found for this check.").
+- For "broken_links": always output one non-empty sentence (e.g. "No broken links found." or describe any problems). Never leave it blank.
 - ALWAYS include detailed reason when pass = false
 - DO NOT include markdown or code blocks
 - DO NOT include any text before or after JSON
@@ -150,6 +153,17 @@ PROMPT;
                     ],
                 ],
                 'broken_links' => ['type' => 'string'],
+            ],
+            'required' => [
+                'content_match',
+                'h1_match',
+                'format_match',
+                'author_match',
+                'nhsuk_tag_match',
+                'report_download_match',
+                'welsh_doc_language',
+                'alt_text_check',
+                'broken_links',
             ],
         ];
 

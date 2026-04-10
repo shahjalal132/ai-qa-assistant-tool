@@ -102,6 +102,8 @@ class ProcessQA implements ShouldBeUnique, ShouldQueue
                 $data = $gemini->analyze($prompt, $enText, $cyText, $schema, $modelId);
             }
 
+            $data = $gemini->normalizeQaResultAgainstSchema($data, $schema);
+
             DB::transaction(function () use ($run, $data): void {
                 $run->result()->delete();
                 $run->result()->create(['data' => $data]);

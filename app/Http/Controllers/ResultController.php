@@ -84,11 +84,7 @@ class ResultController extends Controller
                 ];
                 $data = is_array($r->data) ? $r->data : [];
                 foreach ($extra as $key) {
-                    $val = $data[$key] ?? '';
-                    if (is_array($val)) {
-                        $val = json_encode($val);
-                    }
-                    $row[] = $val;
+                    $row[] = $this->formatResultCsvCell($data[$key] ?? null);
                 }
                 fputcsv($out, $row);
             }
@@ -169,5 +165,33 @@ class ResultController extends Controller
         $result->loadMissing('qaRun.reportUrl.csvUploadBatch');
         $batch = $result->qaRun?->reportUrl?->csvUploadBatch;
         abort_unless($batch && $batch->user_id === auth()->id(), 403);
+    }
+
+    /**
+     * @param  mixed  $val  JSON value from result.data (scalar or array)
+     */
+    private function formatResultCsvCell(mixed $val): string
+    {
+        $missing = __('Not provided in audit output (incomplete response; re-run QA or review manually).');
+
+        if (is_array($val)) {
+            $encoded = json_encode($val);
+
+            return is_string($encoded) ? $encoded : $missing;
+        }
+
+        if ($val === null) {
+            return $missing;
+        }
+
+        if (is_string($val) && trim($val) === '') {
+            return $missing;
+        }
+
+        if (is_bool($val)) {
+            return $val ? '1' : '0';
+        }
+
+        return (string) $val;
     }
 }
