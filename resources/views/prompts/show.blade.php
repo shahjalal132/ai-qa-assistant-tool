@@ -38,6 +38,10 @@
                 </div>
             </div>
 
+            @php
+                $jsonPretty = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+            @endphp
+
             <div class="grid gap-6">
                 {{-- System Instruction --}}
                 <div class="bg-white border border-gray-100 shadow-xl rounded-2xl overflow-hidden">
@@ -46,7 +50,7 @@
                         <div class="h-2 w-2 rounded-full bg-[#1abc9c]"></div>
                     </div>
                     <div class="p-0">
-                        <pre class="p-6 bg-[#1e293b] text-blue-100 text-sm font-mono whitespace-pre-wrap leading-relaxed selection:bg-[#1abc9c] selection:text-white">{{ $prompt->system_instruction }}</pre>
+                        <pre class="p-6 text-sm font-mono text-gray-800 leading-relaxed whitespace-pre-wrap break-words overflow-x-auto selection:bg-[#1abc9c]/20">{{ $prompt->system_instruction }}</pre>
                     </div>
                 </div>
 
@@ -58,7 +62,7 @@
                             <div class="h-2 w-2 rounded-full bg-[#1abc9c]"></div>
                         </div>
                         <div class="p-0">
-                            <pre class="p-6 bg-[#0f172a] text-emerald-400 text-sm font-mono whitespace-pre-wrap leading-relaxed selection:bg-[#1abc9c] selection:text-white">{{ json_encode($prompt->response_schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                            <pre class="p-6 bg-[#0f172a] text-emerald-400 text-sm font-mono whitespace-pre [tab-size:4] leading-relaxed overflow-x-auto selection:bg-[#1abc9c] selection:text-white">{{ json_encode($prompt->response_schema, $jsonPretty) }}</pre>
                         </div>
                     </div>
                 @endif

@@ -93,66 +93,32 @@ CRITICAL:
 }
 PROMPT;
 
+        $objectCheck = static fn (): array => [
+            'type' => 'object',
+            'properties' => [
+                'pass' => [
+                    'type' => 'boolean',
+                ],
+                'reason' => [
+                    'type' => 'string',
+                ],
+            ],
+        ];
+
         $responseSchema = [
             'type' => 'object',
             'properties' => [
-                'content_match' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'pass' => ['type' => 'boolean'],
-                        'reason' => ['type' => 'string'],
-                    ],
+                'content_match' => $objectCheck(),
+                'h1_match' => $objectCheck(),
+                'format_match' => $objectCheck(),
+                'author_match' => $objectCheck(),
+                'nhsuk_tag_match' => $objectCheck(),
+                'report_download_match' => $objectCheck(),
+                'welsh_doc_language' => $objectCheck(),
+                'alt_text_check' => $objectCheck(),
+                'broken_links' => [
+                    'type' => 'string',
                 ],
-                'h1_match' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'pass' => ['type' => 'boolean'],
-                        'reason' => ['type' => 'string'],
-                    ],
-                ],
-                'format_match' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'pass' => ['type' => 'boolean'],
-                        'reason' => ['type' => 'string'],
-                    ],
-                ],
-                'author_match' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'pass' => ['type' => 'boolean'],
-                        'reason' => ['type' => 'string'],
-                    ],
-                ],
-                'nhsuk_tag_match' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'pass' => ['type' => 'boolean'],
-                        'reason' => ['type' => 'string'],
-                    ],
-                ],
-                'report_download_match' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'pass' => ['type' => 'boolean'],
-                        'reason' => ['type' => 'string'],
-                    ],
-                ],
-                'welsh_doc_language' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'pass' => ['type' => 'boolean'],
-                        'reason' => ['type' => 'string'],
-                    ],
-                ],
-                'alt_text_check' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'pass' => ['type' => 'boolean'],
-                        'reason' => ['type' => 'string'],
-                    ],
-                ],
-                'broken_links' => ['type' => 'string'],
             ],
             'required' => [
                 'content_match',

@@ -69,6 +69,12 @@ class PromptController extends Controller
             'is_active' => ['boolean'],
         ]);
 
+        if (trim($validated['system_instruction']) === '') {
+            throw ValidationException::withMessages([
+                'system_instruction' => __('The system instruction field is required.'),
+            ]);
+        }
+
         $schemaRaw = $validated['response_schema'] ?? null;
         $schema = null;
         if (is_string($schemaRaw) && trim($schemaRaw) !== '') {
