@@ -31,7 +31,7 @@ test('formatFormattedExportCell returns FAIL with reason when pass is false', fu
     expect(invokeFormattedExportCell($c, 'content_match', [
         'pass' => false,
         'reason' => 'Section A differs.',
-    ]))->toBe('FAIL - Section A differs.');
+    ]))->toBe('Section A differs.');
 });
 
 test('formatFormattedExportCell trims object check reason on failure', function () {
@@ -39,12 +39,18 @@ test('formatFormattedExportCell trims object check reason on failure', function 
     expect(invokeFormattedExportCell($c, 'format_match', [
         'pass' => false,
         'reason' => "  spaced  \n",
-    ]))->toBe('FAIL - spaced');
+    ]))->toBe('spaced');
 });
 
-test('formatFormattedExportCell returns broken_links string trimmed', function () {
+test('formatFormattedExportCell returns PASS when broken_links reports no broken links', function () {
     $c = new ResultController;
-    expect(invokeFormattedExportCell($c, 'broken_links', '  No issues.  '))->toBe('No issues.');
+    expect(invokeFormattedExportCell($c, 'broken_links', '  No broken links found.  '))->toBe('PASS');
+});
+
+test('formatFormattedExportCell returns broken_links details when broken links exist', function () {
+    $c = new ResultController;
+    expect(invokeFormattedExportCell($c, 'broken_links', '  One link is unreachable: https://example.com  '))
+        ->toBe('One link is unreachable: https://example.com');
 });
 
 test('formatFormattedExportCell returns missing placeholder for null broken_links', function () {

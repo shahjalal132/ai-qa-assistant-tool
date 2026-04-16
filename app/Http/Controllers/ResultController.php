@@ -174,7 +174,15 @@ class ResultController extends Controller
                 return $missing;
             }
             if (is_string($value) && trim($value) !== '') {
-                return trim($value);
+                $text = trim($value);
+                $normalized = strtolower($text);
+
+                // If the audit output explicitly indicates there are no broken links, export PASS.
+                if (str_contains($normalized, 'no broken')) {
+                    return 'PASS';
+                }
+
+                return $text;
             }
 
             return $missing;
