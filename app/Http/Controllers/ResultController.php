@@ -192,7 +192,7 @@ class ResultController extends Controller
             return $missing;
         }
 
-        return $value['pass'] ? 'PASS' : 'FAIL - '.trim($reason);
+        return $value['pass'] ? 'PASS' : trim($reason);
     }
 
     public function destroy(Result $result): RedirectResponse

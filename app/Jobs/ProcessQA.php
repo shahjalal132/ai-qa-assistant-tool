@@ -116,7 +116,7 @@ class ProcessQA implements ShouldBeUnique, ShouldQueue
                 ? $gemini->stripHtmlForTokens($cyOut->body)
                 : $this->unavailablePlaceholder('Welsh', $cyOut);
 
-            Log::info('Clean English Text', [$enText]);
+            // Log::info('Clean English Text', [$enText]);
             // Log::info('Clean Welsh Text', [$cyText]);
 
             $probesEn = $pageFetch->isOk($enOut)
