@@ -215,9 +215,13 @@ return [
     'environments' => [
         'production' => [
             'supervisor-1' => [
-                'maxProcesses' => 10,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+                'connection' => 'redis',
+                'queue' => ['default', 'emails'],
+                'balance' => 'auto',       // Options: simple, auto, or false
+                'minProcesses' => 1,       // Minimum workers to keep alive
+                'maxProcesses' => 10,      // Maximum workers to scale up to
+                'backoff' => 0,
+                'tries' => 3,
             ],
         ],
 
